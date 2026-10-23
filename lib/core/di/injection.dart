@@ -39,6 +39,13 @@ import '../../features/reports/domain/reports_repository.dart';
 import '../../features/reports/domain/report_kind.dart';
 import '../../features/reports/presentation/cubit/report_pdf_cubit.dart';
 import '../../features/reports/presentation/cubit/reports_cubit.dart';
+import '../../features/backup/data/backup_file_service.dart';
+import '../../features/backup/data/backup_repository_impl.dart';
+import '../../features/backup/data/google_drive_service_impl.dart';
+import '../../features/backup/data/settings_store.dart';
+import '../../features/backup/domain/backup_repository.dart';
+import '../../features/backup/domain/google_drive_service.dart';
+import '../../features/backup/presentation/cubit/backup_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -51,6 +58,8 @@ import '../../features/dashboard/data/dashboard_repository_impl.dart';
 import '../../features/dashboard/domain/dashboard_repository.dart';
 import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import '../database/app_database.dart';
+import '../services/app_paths.dart';
+import '../services/app_restarter.dart';
 import '../services/whatsapp_service.dart';
 
 final getIt = GetIt.instance;
@@ -178,5 +187,24 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<ReportPdfCubit>(
     () => ReportPdfCubit(getIt<ReportsRepository>(), getIt<ReportPdfService>()),
+  );
+
+  getIt.registerLazySingleton<AppPaths>(() => AppPaths());
+  getIt.registerLazySingleton<AppRestarter>(() => const ProcessAppRestarter());
+  getIt.registerLazySingleton<SettingsStore>(() => SettingsStore(getIt<AppDatabase>()));
+  getIt.registerLazySingleton<GoogleDriveService>(
+    () => GoogleDriveServiceImpl(getIt<SettingsStore>()),
+  );
+  getIt.registerLazySingleton<BackupRepository>(
+    () => BackupRepositoryImpl(
+      db: getIt<AppDatabase>(),
+      paths: getIt<AppPaths>(),
+      files: BackupFileService(getIt<AppPaths>()),
+      drive: getIt<GoogleDriveService>(),
+      settings: getIt<SettingsStore>(),
+    ),
+  );
+  getIt.registerFactory<BackupCubit>(
+    () => BackupCubit(getIt<BackupRepository>(), getIt<AppRestarter>()),
   );
 }

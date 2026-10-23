@@ -2,10 +2,10 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../../../core/database/app_database.dart' hide Student;
 import '../../../core/database/daos/students_dao.dart';
+import '../../../core/services/app_paths.dart';
 import '../../../core/utils/app_date_utils.dart';
 import '../domain/student.dart';
 import 'student_mapper.dart';
@@ -23,10 +23,7 @@ class StudentsRepositoryImpl implements StudentsRepository {
   final StudentsDao _dao;
   final Future<Directory> Function() _documentsRoot;
 
-  static Future<Directory> _defaultDocumentsRoot() async {
-    final base = await getApplicationDocumentsDirectory();
-    return Directory(p.join(base.path, 'RozatulAtfal', 'documents'));
-  }
+  static Future<Directory> _defaultDocumentsRoot() => AppPaths().documentsDir();
 
   @override
   Future<List<Student>> searchStudents({

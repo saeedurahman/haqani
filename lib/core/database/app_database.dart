@@ -1,10 +1,6 @@
-import 'dart:io';
-
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
-import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
-
+import '../services/app_paths.dart';
 import 'daos/attendance_dao.dart';
 import 'daos/classes_dao.dart';
 import 'daos/exams_dao.dart';
@@ -40,8 +36,6 @@ class AppDatabase extends _$AppDatabase {
   /// Used by tests with an in-memory database.
   AppDatabase.forTesting(super.executor);
 
-  static const databaseFileName = 'school.sqlite';
-
   @override
   int get schemaVersion => 1;
 
@@ -55,11 +49,7 @@ class AppDatabase extends _$AppDatabase {
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
-    final dir = await getApplicationDocumentsDirectory();
-    final file = File(
-      p.join(dir.path, 'RozatulAtfal', AppDatabase.databaseFileName),
-    );
-    await file.parent.create(recursive: true);
+    final file = await AppPaths().databaseFile();
     return NativeDatabase.createInBackground(file);
   });
 }

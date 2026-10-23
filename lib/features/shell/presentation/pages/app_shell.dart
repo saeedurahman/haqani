@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../admissions/presentation/pages/admissions_flow.dart';
 import '../../../attendance/presentation/pages/attendance_page.dart';
+import '../../../backup/presentation/pages/backup_page.dart';
 import '../../../classes/presentation/pages/classes_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../exams/presentation/pages/exams_flow.dart';
@@ -46,6 +47,8 @@ class AppShell extends StatelessWidget {
     switch (section) {
       case AppSection.dashboard:
         return const DashboardPage();
+      case AppSection.backup:
+        return const BackupPage();
       case AppSection.reports:
         return const ReportsFlow();
       case AppSection.exams:

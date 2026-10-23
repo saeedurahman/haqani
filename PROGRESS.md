@@ -21,7 +21,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 8 | Exams & Results | [x] | claude/focused-wright-p1vttv |
 | 9 | Reports | [x] | claude/focused-wright-p1vttv |
 | 10 | WhatsApp share | [x] | claude/focused-wright-p1vttv |
-| 11 | Backup & Restore (local + Google Drive) | [ ] | |
+| 11 | Backup & Restore (local + Google Drive) | [x] | claude/focused-wright-p1vttv |
 | 12 | Settings & Polish | [ ] | |
 
 ## Current Task
@@ -115,6 +115,17 @@ None.
   - Buttons: **Student page** (WhatsApp button in the header: attendance % and fee due), **Fees > Vouchers** (green chat icon on every voucher with a balance: fee reminder), **Receipt page** ("Send to Parent on WhatsApp": receipt no, amount, balance; sisters on one receipt go to the first student's parent), **Result card page** (marks, grade, position, result), **Attendance** (green chat icon next to an Absent student on Mark Attendance and on Daily Report; "Send to Parent on WhatsApp" in the monthly student dialog with present/absent/leave/%).
   - 6 cubits got a WhatsApp action (constructor takes the service); DI registers it. Existing tests updated; shared `FakeWhatsAppService` for tests.
   - 32 new tests (service with fake launcher, all message texts, 6 cubit actions, receipt cubit, 3 page flows). Total 322, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 11 Backup & Restore:
+  - **Back Up Now:** one zip `school_backup_YYYY-MM-DD_HH-mm.zip` with the database (copied safely with `VACUUM INTO`, even while the app runs), the attached documents folder and an info file. Written under a temporary name first, so a half-written file never looks like a backup.
+  - **Backup folder:** chosen on the Backup page (default: `Documents/RozatulAtfal/Backups`); the folder is tested for writing before it is saved. Only the newest 10 `school_backup_*.zip` files are kept.
+  - **Google Drive:** connect once (browser opens, user presses Allow; loopback OAuth with `googleapis_auth`, permission `drive.file` only). Backups go to the Drive folder "School Backups". The login is saved in `app_settings` and refreshed automatically. Disconnect any time (nothing is deleted on Drive).
+  - **Offline:** if Drive cannot be reached the local backup is still made, the page shows a clear message, and the upload is queued ("Waiting to upload"). The queued upload is sent on the next app start when the internet is back. Nothing crashes.
+  - **Automatic backup:** each time the app starts, if there is no backup yet today, one is made in the background (and uploaded to Drive when connected). Failures are ignored so the app always opens.
+  - **Restore:** from a backup on this computer or from Drive. Confirmation first; a safety copy `school_before_restore_*.zip` of the current data is saved; the zip is checked (valid zip, SQLite database, not from a newer app version); database and documents are replaced; attached-document paths from another computer are fixed; then the app restarts (button "Restart App").
+  - Dashboard "Last backup" now shows real values.
+  - Google keys: `lib/core/config/google_config.dart` is in `.gitignore`; `google_config.example.dart` is committed with the setup steps. README explains the one-time copy.
+  - New shared `AppPaths` (database file, documents, backup folder), `AppRestarter`, `FileSize`.
+  - 62 new tests (zip contents, real restore round trip, prune, path fix, bad files, daily auto backup, offline queue, Drive fakes, cubit, page flows, file size). Total 384, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -138,6 +149,11 @@ None.
 - Reports: the Dashboard and WhatsApp sharing are separate modules; there is no "send report" button here.
 - WhatsApp: opening WhatsApp could not be tested in the cloud. The link format and the number conversion are tested; the owner must try it on Windows.
 - WhatsApp: one message at a time (no bulk send), by design. If the parent has no valid number the button shows a message instead.
+- Backup: **a fresh clone does not compile until `google_config.example.dart` is copied to `google_config.dart`** (see README). This is on purpose, to keep Google keys out of git.
+- Backup: the real Google sign-in, upload, download and the "Restart App" button could not be tested in the cloud (no Google account, no Windows GUI). Everything around them is tested with fakes. The owner must test with a real Google account.
+- Backup: automatic backup runs when the app starts (once a day). A backup "on app close" is not done, because Windows gives no safe time to run it. If the PC is never closed and the app stays open for days, press Back Up Now.
+- Backup: the Drive file imports `package:http` (already installed by googleapis_auth) in the Drive file, with an `ignore` comment, because googleapis_auth needs an http client. No new package was added to `pubspec.yaml`.
+- Backup: attached documents are included in the zip; a very large documents folder makes backups big and slow.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -251,6 +267,19 @@ None.
 7. Exams > open an exam > Results > click a student: "Send to Parent on WhatsApp" with marks and position.
 8. Check Urdu names show correctly in the WhatsApp message text.
 9. If WhatsApp is not installed, the browser (web.whatsapp.com) should open, or the app shows "WhatsApp could not be opened".
+
+### Module 11
+1. Copy `google_config.example.dart` to `google_config.dart` (README). The app should build.
+2. Backup page: press Back Up Now. A zip appears in the shown folder, "Last backup" updates, and the Dashboard shows the same date.
+3. Press it 12 times (or change the PC clock): only the newest 10 `school_backup_*` files stay.
+4. Change Folder to a USB drive folder, back up again. Use the app folder returns to default.
+5. Close and reopen the app: if it is a new day a backup is made by itself (check the folder and the date).
+6. Google Drive (needs a Google account and the keys in `google_config.dart`): Connect Google Drive, allow in the browser. The email shows. Back Up Now: the message says it was uploaded; check Drive has a folder "School Backups" with the zip.
+7. Turn off the internet and press Back Up Now: red message "saved on this computer ... no internet", "Waiting to upload" shows. Turn the internet on and restart the app: the upload is sent.
+8. Restore from this computer: first add a test student. Back up. Add another student. Restore the backup: confirm, wait, press Restart App. The app restarts and only the first student is there; attached documents open. Check a `school_before_restore_*` file was saved.
+9. Restore from Google Drive: On Google Drive tab, Load backups, Restore one.
+10. Try restoring a wrong file (rename a .txt to a backup name is not possible from the page; the list only shows real backups). Try Disconnect: Drive tab disappears, nothing is deleted on Drive.
+11. If possible, copy a backup zip to another Windows user/PC, restore there, and check attached documents still open.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
