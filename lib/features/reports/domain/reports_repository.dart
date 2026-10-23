@@ -30,7 +30,11 @@ abstract class ReportsRepository {
   });
 
   /// Fee vouchers of a month. [status] is `paid`, `partial`, `unpaid` or null for all.
-  Future<ReportDocument> feesReport({required String month, int? classId, String? status});
+  Future<ReportDocument> feesReport({
+    required String month,
+    int? classId,
+    String? status,
+  });
 
   /// Students who still owe fee.
   Future<ReportDocument> defaultersReport({int? classId});

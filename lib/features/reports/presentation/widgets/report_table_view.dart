@@ -23,7 +23,9 @@ class ReportStats extends StatelessWidget {
             decoration: BoxDecoration(
               color: AppColors.primary.withValues(alpha: 0.07),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.2),
+              ),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
@@ -49,7 +51,12 @@ class ReportStats extends StatelessWidget {
 /// A report table as slivers, so long lists scroll smoothly.
 List<Widget> reportTableSlivers(BuildContext context, ReportTable table) {
   final text = Theme.of(context).textTheme;
-  Widget cell(String value, ReportColumn c, {bool header = false, bool bold = false}) {
+  Widget cell(
+    String value,
+    ReportColumn c, {
+    bool header = false,
+    bool bold = false,
+  }) {
     return Expanded(
       flex: c.flex,
       child: Padding(
@@ -85,7 +92,11 @@ List<Widget> reportTableSlivers(BuildContext context, ReportTable table) {
           color: AppColors.primary.withValues(alpha: 0.08),
           borderRadius: const BorderRadius.vertical(top: Radius.circular(14)),
         ),
-        child: Row(children: [for (final c in table.columns) cell(c.label, c, header: true)]),
+        child: Row(
+          children: [
+            for (final c in table.columns) cell(c.label, c, header: true),
+          ],
+        ),
       ),
     ),
     if (table.rows.isEmpty)
@@ -93,7 +104,10 @@ List<Widget> reportTableSlivers(BuildContext context, ReportTable table) {
         child: Container(
           padding: const EdgeInsets.all(24),
           decoration: _boxDecoration(bottom: true),
-          child: Text('No records.', style: text.bodyMedium?.copyWith(color: AppColors.textMuted)),
+          child: Text(
+            'No records.',
+            style: text.bodyMedium?.copyWith(color: AppColors.textMuted),
+          ),
         ),
       )
     else
@@ -122,7 +136,10 @@ List<Widget> reportTableSlivers(BuildContext context, ReportTable table) {
   ];
 }
 
-BoxDecoration _boxDecoration({bool bottom = false, Color color = AppColors.surface}) {
+BoxDecoration _boxDecoration({
+  bool bottom = false,
+  Color color = AppColors.surface,
+}) {
   return BoxDecoration(
     color: color,
     border: const Border(
@@ -130,6 +147,8 @@ BoxDecoration _boxDecoration({bool bottom = false, Color color = AppColors.surfa
       right: BorderSide(color: AppColors.border),
       bottom: BorderSide(color: AppColors.border),
     ),
-    borderRadius: bottom ? const BorderRadius.vertical(bottom: Radius.circular(14)) : null,
+    borderRadius: bottom
+        ? const BorderRadius.vertical(bottom: Radius.circular(14))
+        : null,
   );
 }

@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
+import '../../../core/utils/pdf_school_header.dart';
 import '../domain/result_calculator.dart';
 import '../domain/result_card.dart';
 import '../domain/result_card_pdf_service.dart';
@@ -32,6 +33,7 @@ class ResultCardPdf implements ResultCardPdfService {
   @override
   Future<Uint8List> build(List<ResultCard> cards) async {
     await _loadFonts();
+    final logo = await loadPdfLogo(cards.first.school.logoPath);
     final doc = pw.Document(
       title: cards.length == 1
           ? 'Result Card - ${cards.first.result.student.name}'
@@ -49,7 +51,7 @@ class ResultCardPdf implements ResultCardPdfService {
             child: pw.Container(
               decoration: pw.BoxDecoration(border: pw.Border.all(color: _accent, width: 0.8)),
               padding: const pw.EdgeInsets.symmetric(horizontal: 30, vertical: 26),
-              child: _content(card),
+              child: _content(card, logo),
             ),
           ),
         ),
@@ -58,25 +60,21 @@ class ResultCardPdf implements ResultCardPdfService {
     return doc.save();
   }
 
-  pw.Widget _content(ResultCard c) {
+  pw.Widget _content(ResultCard c, pw.ImageProvider? logo) {
     final r = c.result;
     final date = c.exam.date;
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
-        pw.Center(
-          child: pw.Text(
-            c.school.name,
-            style: pw.TextStyle(fontSize: 25, fontWeight: pw.FontWeight.bold, color: _accent),
-          ),
+        pdfCenteredSchoolHeader(
+          name: c.school.name,
+          address: c.school.address,
+          phone: c.school.phone,
+          logo: logo,
+          nameSize: 25,
+          nameColor: _accent,
+          detailColor: _muted,
         ),
-        if (c.school.address.isNotEmpty)
-          pw.Center(
-            child: pw.Padding(
-              padding: const pw.EdgeInsets.only(top: 3),
-              child: pw.Text(c.school.address, style: const pw.TextStyle(fontSize: 10.5, color: _muted)),
-            ),
-          ),
         pw.SizedBox(height: 14),
         pw.Center(
           child: pw.Container(

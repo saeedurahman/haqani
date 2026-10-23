@@ -9,12 +9,12 @@ import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../../../exams/presentation/pages/exams_flow.dart';
 import '../../../fees/presentation/pages/fees_flow.dart';
 import '../../../reports/presentation/pages/reports_flow.dart';
+import '../../../settings/presentation/pages/settings_page.dart';
 import '../../../staff/presentation/pages/staff_flow.dart';
 import '../../../students/presentation/pages/students_flow.dart';
 import '../cubit/app_section.dart';
 import '../cubit/navigation_cubit.dart';
 import '../widgets/app_sidebar.dart';
-import 'coming_soon_page.dart';
 
 class AppShell extends StatelessWidget {
   const AppShell({super.key});
@@ -47,6 +47,8 @@ class AppShell extends StatelessWidget {
     switch (section) {
       case AppSection.dashboard:
         return const DashboardPage();
+      case AppSection.settings:
+        return const SettingsPage();
       case AppSection.backup:
         return const BackupPage();
       case AppSection.reports:
@@ -65,8 +67,6 @@ class AppShell extends StatelessWidget {
         return const StudentsFlow();
       case AppSection.classes:
         return const ClassesPage();
-      default:
-        return ComingSoonPage(section: section);
     }
   }
 }

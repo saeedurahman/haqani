@@ -272,6 +272,8 @@ class FeesRepositoryImpl implements FeesRepository {
       date: converted.first.date,
       schoolName: await _setting(AppConstants.settingSchoolName) ?? AppStrings.defaultSchoolName,
       schoolAddress: await _setting(AppConstants.settingSchoolAddress) ?? '',
+      schoolPhone: await _setting(AppConstants.settingSchoolPhone) ?? '',
+      logoPath: await _setting(AppConstants.settingLogoPath),
       lines: [
         for (final v in converted) ReceiptLine(voucher: v, receivedNow: receivedNow[v.id]),
       ],

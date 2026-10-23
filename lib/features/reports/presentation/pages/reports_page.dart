@@ -39,12 +39,15 @@ class ReportsPage extends StatelessWidget {
         padding: const EdgeInsets.all(AppConstants.pagePadding),
         child: Center(
           child: ConstrainedBox(
-            constraints: const BoxConstraints(maxWidth: AppConstants.maxContentWidth),
+            constraints: const BoxConstraints(
+              maxWidth: AppConstants.maxContentWidth,
+            ),
             child: ListView(
               children: [
                 const PageHeader(
                   title: 'Reports',
-                  subtitle: 'Choose a report. You can print it or save it for Excel.',
+                  subtitle:
+                      'Choose a report. You can print it or save it for Excel.',
                 ),
                 const SizedBox(height: 28),
                 AdaptiveGrid(
@@ -76,9 +79,9 @@ class _ReportTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final colors = _colors[kind]!;
     return HoverCard(
-      onTap: () => Navigator.of(context).push(
-        MaterialPageRoute<void>(builder: (_) => ReportPage(kind: kind)),
-      ),
+      onTap: () => Navigator.of(
+        context,
+      ).push(MaterialPageRoute<void>(builder: (_) => ReportPage(kind: kind))),
       child: Row(
         children: [
           Container(
@@ -106,7 +109,10 @@ class _ReportTile extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(kind.label, style: Theme.of(context).textTheme.titleMedium),
+                Text(
+                  kind.label,
+                  style: Theme.of(context).textTheme.titleMedium,
+                ),
                 const SizedBox(height: 4),
                 Text(
                   kind.description,

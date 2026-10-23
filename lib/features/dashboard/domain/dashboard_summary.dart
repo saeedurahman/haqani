@@ -7,6 +7,9 @@ class DashboardSummary extends Equatable {
     required this.totalStaff,
     required this.presentToday,
     required this.feesCollectedThisMonth,
+    this.absentToday = 0,
+    this.defaulters = 0,
+    this.pendingFees = 0,
     this.lastBackup,
   });
 
@@ -14,6 +17,11 @@ class DashboardSummary extends Equatable {
   final int totalStudents;
   final int totalStaff;
   final int presentToday;
+  final int absentToday;
+
+  /// Active students who still owe fee, and how much (whole PKR).
+  final int defaulters;
+  final int pendingFees;
 
   /// Whole PKR.
   final int feesCollectedThisMonth;
@@ -26,6 +34,9 @@ class DashboardSummary extends Equatable {
         totalStaff,
         presentToday,
         feesCollectedThisMonth,
+        absentToday,
+        defaulters,
+        pendingFees,
         lastBackup,
       ];
 }

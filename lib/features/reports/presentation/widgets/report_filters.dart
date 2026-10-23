@@ -22,7 +22,8 @@ class ReportFilters extends StatelessWidget {
   Widget build(BuildContext context) {
     final cubit = context.read<ReportsCubit>();
     final now = DateTime.now();
-    final isCurrentMonth = state.month.year == now.year && state.month.month == now.month;
+    final isCurrentMonth =
+        state.month.year == now.year && state.month.month == now.month;
 
     switch (state.kind) {
       case ReportKind.students:
@@ -65,7 +66,11 @@ class ReportFilters extends StatelessWidget {
               onClassChanged: cubit.selectClass,
               onSectionChanged: cubit.selectSection,
             ),
-            MonthSwitcher(month: state.month, onMove: cubit.moveMonth, canGoNext: !isCurrentMonth),
+            MonthSwitcher(
+              month: state.month,
+              onMove: cubit.moveMonth,
+              canGoNext: !isCurrentMonth,
+            ),
           ],
         );
       case ReportKind.fees:
@@ -75,7 +80,11 @@ class ReportFilters extends StatelessWidget {
           crossAxisAlignment: WrapCrossAlignment.center,
           children: [
             _ClassDropdown(state: state, onChanged: cubit.selectClass),
-            MonthSwitcher(month: state.month, onMove: cubit.moveMonth, canGoNext: !isCurrentMonth),
+            MonthSwitcher(
+              month: state.month,
+              onMove: cubit.moveMonth,
+              canGoNext: !isCurrentMonth,
+            ),
             for (final (label, status) in const [
               ('All', null),
               ('Paid', FeeStatus.paid),
@@ -100,11 +109,18 @@ class ReportFilters extends StatelessWidget {
             isExpanded: true,
             hint: const Text('Choose an exam'),
             decoration: const InputDecoration(
-              prefixIcon: Icon(Icons.edit_note_rounded, size: 20, color: AppColors.textMuted),
+              prefixIcon: Icon(
+                Icons.edit_note_rounded,
+                size: 20,
+                color: AppColors.textMuted,
+              ),
             ),
             items: [
               for (final e in state.exams)
-                DropdownMenuItem(value: e.id, child: Text('${e.name}  (${e.className})')),
+                DropdownMenuItem(
+                  value: e.id,
+                  child: Text('${e.name}  (${e.className})'),
+                ),
             ],
             onChanged: cubit.selectExam,
           ),
@@ -130,11 +146,16 @@ class _ClassDropdown extends StatelessWidget {
         initialValue: state.classId,
         isExpanded: true,
         decoration: const InputDecoration(
-          prefixIcon: Icon(Icons.class_rounded, size: 20, color: AppColors.textMuted),
+          prefixIcon: Icon(
+            Icons.class_rounded,
+            size: 20,
+            color: AppColors.textMuted,
+          ),
         ),
         items: [
           const DropdownMenuItem<int?>(value: null, child: Text('All classes')),
-          for (final c in state.classes) DropdownMenuItem<int?>(value: c.id, child: Text(c.name)),
+          for (final c in state.classes)
+            DropdownMenuItem<int?>(value: c.id, child: Text(c.name)),
         ],
         onChanged: onChanged,
       ),
@@ -184,7 +205,9 @@ class _StudentPicker extends StatelessWidget {
                   avatar: const Icon(Icons.person_rounded, size: 18),
                   label: Text(
                     '${s.name}  |  ID ${s.admissionNo}',
-                    style: const TextStyle(fontFamilyFallback: AppTheme.fontFallback),
+                    style: const TextStyle(
+                      fontFamilyFallback: AppTheme.fontFallback,
+                    ),
                   ),
                   onPressed: () => cubit.selectStudent(s),
                 ),

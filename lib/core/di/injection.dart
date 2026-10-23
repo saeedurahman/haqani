@@ -42,10 +42,14 @@ import '../../features/reports/presentation/cubit/reports_cubit.dart';
 import '../../features/backup/data/backup_file_service.dart';
 import '../../features/backup/data/backup_repository_impl.dart';
 import '../../features/backup/data/google_drive_service_impl.dart';
-import '../../features/backup/data/settings_store.dart';
+import '../database/settings_store.dart';
 import '../../features/backup/domain/backup_repository.dart';
 import '../../features/backup/domain/google_drive_service.dart';
 import '../../features/backup/presentation/cubit/backup_cubit.dart';
+import '../../features/settings/data/settings_repository_impl.dart';
+import '../../features/settings/domain/settings_repository.dart';
+import '../../features/settings/presentation/cubit/school_profile_cubit.dart';
+import '../../features/settings/presentation/cubit/settings_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -72,7 +76,7 @@ void configureDependencies({AppDatabase? database}) {
   );
 
   getIt.registerLazySingleton<DashboardRepository>(
-    () => DashboardRepositoryImpl(getIt<AppDatabase>()),
+    () => DashboardRepositoryImpl(getIt<AppDatabase>(), getIt<FeesRepository>()),
   );
 
   getIt.registerFactory<DashboardCubit>(
@@ -206,5 +210,16 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<BackupCubit>(
     () => BackupCubit(getIt<BackupRepository>(), getIt<AppRestarter>()),
+  );
+
+  getIt.registerLazySingleton<SettingsRepository>(
+    () => SettingsRepositoryImpl(getIt<SettingsStore>(), getIt<AppPaths>()),
+  );
+  // One for the whole app: the side menu shows the school name and logo.
+  getIt.registerLazySingleton<SchoolProfileCubit>(
+    () => SchoolProfileCubit(getIt<SettingsRepository>()),
+  );
+  getIt.registerFactory<SettingsCubit>(
+    () => SettingsCubit(getIt<SettingsRepository>(), getIt<SchoolProfileCubit>()),
   );
 }

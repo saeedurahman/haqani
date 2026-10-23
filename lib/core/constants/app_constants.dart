@@ -1,6 +1,7 @@
 class AppConstants {
   const AppConstants._();
 
+  static const appVersion = '1.0.0';
   static const sidebarWidth = 264.0;
   static const pagePadding = 32.0;
   static const maxContentWidth = 1280.0;
@@ -8,6 +9,8 @@ class AppConstants {
 
   static const settingSchoolName = 'school_name';
   static const settingSchoolAddress = 'school_address';
+  static const settingSchoolPhone = 'school_phone';
+  static const settingLogoPath = 'logo_path';
   static const settingLastBackup = 'last_backup_time';
   static const settingBackupFolder = 'backup_folder';
   static const settingDriveCredentials = 'drive_credentials';

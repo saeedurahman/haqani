@@ -11,7 +11,7 @@ import '../domain/backup_models.dart';
 import '../domain/backup_repository.dart';
 import '../domain/google_drive_service.dart';
 import 'backup_file_service.dart';
-import 'settings_store.dart';
+import '../../../core/database/settings_store.dart';
 
 class BackupRepositoryImpl implements BackupRepository {
   BackupRepositoryImpl({

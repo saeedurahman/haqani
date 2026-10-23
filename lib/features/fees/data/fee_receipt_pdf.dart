@@ -6,6 +6,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
+import '../../../core/utils/pdf_school_header.dart';
 import '../domain/fee_models.dart';
 import '../domain/receipt_pdf_service.dart';
 
@@ -30,6 +31,7 @@ class FeeReceiptPdf implements ReceiptPdfService {
   @override
   Future<Uint8List> build(FeeReceipt receipt) async {
     await _loadFonts();
+    final logo = await loadPdfLogo(receipt.logoPath);
     final doc = pw.Document(
       title: 'Fee Receipt ${receipt.receiptNo}',
       theme: pw.ThemeData.withFont(base: _regular!, bold: _bold!, fontFallback: [_urdu!]),
@@ -38,7 +40,7 @@ class FeeReceiptPdf implements ReceiptPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a5,
         margin: const pw.EdgeInsets.all(24),
-        header: (_) => _header(receipt),
+        header: (_) => _header(receipt, logo),
         footer: (_) => _footer(),
         build: (_) => [
           for (final line in receipt.lines) _student(line),
@@ -49,23 +51,20 @@ class FeeReceiptPdf implements ReceiptPdfService {
     return doc.save();
   }
 
-  pw.Widget _header(FeeReceipt r) {
+  pw.Widget _header(FeeReceipt r, pw.ImageProvider? logo) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
-        pw.Center(
-          child: pw.Text(
-            r.schoolName,
-            style: pw.TextStyle(fontSize: 19, fontWeight: pw.FontWeight.bold, color: _accent),
-          ),
+        pdfCenteredSchoolHeader(
+          name: r.schoolName,
+          address: r.schoolAddress,
+          phone: r.schoolPhone,
+          logo: logo,
+          nameSize: 19,
+          nameColor: _accent,
+          detailColor: _muted,
+          logoSize: 38,
         ),
-        if (r.schoolAddress.isNotEmpty)
-          pw.Center(
-            child: pw.Padding(
-              padding: const pw.EdgeInsets.only(top: 2),
-              child: pw.Text(r.schoolAddress, style: const pw.TextStyle(fontSize: 9, color: _muted)),
-            ),
-          ),
         pw.SizedBox(height: 10),
         pw.Container(
           padding: const pw.EdgeInsets.symmetric(horizontal: 12, vertical: 7),

@@ -4,18 +4,21 @@ import '../../../core/constants/app_constants.dart';
 import '../../../core/constants/app_strings.dart';
 import '../../../core/database/app_database.dart';
 import '../../../core/utils/app_date_utils.dart';
+import '../../fees/domain/fees_repository.dart';
 import '../domain/dashboard_repository.dart';
 import '../domain/dashboard_summary.dart';
 
 class DashboardRepositoryImpl implements DashboardRepository {
-  DashboardRepositoryImpl(this._db);
+  DashboardRepositoryImpl(this._db, this._fees);
 
   final AppDatabase _db;
+  final FeesRepository _fees;
 
   @override
   Future<DashboardSummary> loadSummary(DateTime today) async {
     final schoolName = await _setting(AppConstants.settingSchoolName);
     final lastBackup = await _setting(AppConstants.settingLastBackup);
+    final defaulters = await _fees.getDefaulters();
 
     return DashboardSummary(
       schoolName: (schoolName == null || schoolName.isEmpty)
@@ -23,7 +26,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
           : schoolName,
       totalStudents: await _activeStudents(),
       totalStaff: await _activeStaff(),
-      presentToday: await _presentOn(AppDateUtils.toIso(today)),
+      presentToday: await _markedOn(AppDateUtils.toIso(today), 'present'),
+      absentToday: await _markedOn(AppDateUtils.toIso(today), 'absent'),
+      defaulters: defaulters.length,
+      pendingFees: defaulters.fold(0, (sum, d) => sum + d.balance),
       feesCollectedThisMonth: await _collectedIn(AppDateUtils.toMonth(today)),
       lastBackup: AppDateUtils.tryParseIso(lastBackup),
     );
@@ -52,12 +58,12 @@ class DashboardRepositoryImpl implements DashboardRepository {
     return (await query.getSingle()).read(count) ?? 0;
   }
 
-  Future<int> _presentOn(String isoDate) async {
+  Future<int> _markedOn(String isoDate, String status) async {
     final count = _db.attendance.id.count();
     final query = _db.selectOnly(_db.attendance)
       ..addColumns([count])
       ..where(_db.attendance.date.equals(isoDate) &
-          _db.attendance.status.equals('present'));
+          _db.attendance.status.equals(status));
     return (await query.getSingle()).read(count) ?? 0;
   }
 

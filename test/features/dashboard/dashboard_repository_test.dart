@@ -5,6 +5,8 @@ import 'package:haqani/core/constants/app_constants.dart';
 import 'package:haqani/core/constants/app_strings.dart';
 import 'package:haqani/core/database/app_database.dart';
 import 'package:haqani/features/dashboard/data/dashboard_repository_impl.dart';
+import 'package:haqani/features/fees/data/fees_repository_impl.dart';
+import 'package:haqani/features/fees/domain/fee_models.dart';
 
 void main() {
   late AppDatabase db;
@@ -13,7 +15,7 @@ void main() {
 
   setUp(() {
     db = AppDatabase.forTesting(NativeDatabase.memory());
-    repository = DashboardRepositoryImpl(db);
+    repository = DashboardRepositoryImpl(db, FeesRepositoryImpl(db, clock: () => today));
   });
 
   tearDown(() => db.close());
@@ -35,6 +37,9 @@ void main() {
     expect(summary.totalStudents, 0);
     expect(summary.totalStaff, 0);
     expect(summary.presentToday, 0);
+    expect(summary.absentToday, 0);
+    expect(summary.defaulters, 0);
+    expect(summary.pendingFees, 0);
     expect(summary.feesCollectedThisMonth, 0);
     expect(summary.lastBackup, isNull);
   });
@@ -105,5 +110,45 @@ void main() {
 
     expect(summary.schoolName, 'Test School');
     expect(summary.lastBackup, DateTime(2026, 5, 10, 9, 30));
+  });
+
+  test('counts absent students for today only', () async {
+    final a = await addStudent('1');
+    final b = await addStudent('2');
+    Future<void> mark(int id, String date, String status) {
+      return db.into(db.attendance).insert(
+            AttendanceCompanion.insert(studentId: id, date: date, status: status),
+          );
+    }
+
+    await mark(a, '2026-05-12', 'absent');
+    await mark(b, '2026-05-12', 'present');
+    await mark(b, '2026-05-11', 'absent');
+
+    final summary = await repository.loadSummary(today);
+
+    expect((summary.presentToday, summary.absentToday), (1, 1));
+  });
+
+  test('pending fees: students who owe, and the total', () async {
+    final classId = await db.into(db.schoolClasses).insert(
+          SchoolClassesCompanion.insert(name: 'Class 1'),
+        );
+    final fees = FeesRepositoryImpl(db, clock: () => today);
+    await fees.saveFeeStructure(classId, 1500, 0, 0);
+    for (final no in ['1', '2', '3']) {
+      await db.into(db.students).insert(
+            StudentsCompanion.insert(admissionNo: no, name: 'S$no', classId: Value(classId)),
+          );
+    }
+    await fees.generateVouchers(classId: classId, month: '2026-05');
+    final vouchers = await fees.getVouchers(month: '2026-05', classId: classId);
+    await fees.collect([PaymentRequest(voucherId: vouchers[0].id, amount: 1500)], today);
+    await fees.collect([PaymentRequest(voucherId: vouchers[1].id, amount: 500)], today);
+
+    final summary = await repository.loadSummary(today);
+
+    expect(summary.defaulters, 2);
+    expect(summary.pendingFees, 1000 + 1500);
   });
 }

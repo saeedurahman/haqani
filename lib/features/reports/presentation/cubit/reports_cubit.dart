@@ -14,19 +14,30 @@ import 'reports_state.dart';
 /// Holds the choices (class, month, dates...) of one report and builds it.
 class ReportsCubit extends Cubit<ReportsState> {
   ReportsCubit(this._repository, ReportKind kind, {DateTime Function()? clock})
-      : _clock = clock ?? DateTime.now,
-        super(ReportsState(
+    : _clock = clock ?? DateTime.now,
+      super(
+        ReportsState(
           kind: kind,
-          month: DateTime((clock ?? DateTime.now)().year, (clock ?? DateTime.now)().month),
+          month: DateTime(
+            (clock ?? DateTime.now)().year,
+            (clock ?? DateTime.now)().month,
+          ),
           // New admissions start with the current month.
           from: kind == ReportKind.admissions
-              ? DateTime((clock ?? DateTime.now)().year, (clock ?? DateTime.now)().month)
+              ? DateTime(
+                  (clock ?? DateTime.now)().year,
+                  (clock ?? DateTime.now)().month,
+                )
               : null,
           to: kind == ReportKind.admissions
-              ? DateTime((clock ?? DateTime.now)().year, (clock ?? DateTime.now)().month,
-                  (clock ?? DateTime.now)().day)
+              ? DateTime(
+                  (clock ?? DateTime.now)().year,
+                  (clock ?? DateTime.now)().month,
+                  (clock ?? DateTime.now)().day,
+                )
               : null,
-        ));
+        ),
+      );
 
   final ReportsRepository _repository;
   final DateTime Function() _clock;
@@ -38,13 +49,20 @@ class ReportsCubit extends Cubit<ReportsState> {
     emit(state.copyWith(status: ReportsStatus.loading));
     try {
       final classes = await _repository.getClassOptions();
-      final exams = state.kind == ReportKind.examResults ? await _repository.getExamOptions() : state.exams;
-      emit(state.copyWith(
-        classes: classes,
-        exams: exams,
-        // Attendance needs one class; fee reports start with all classes.
-        classId: () => state.kind == ReportKind.attendance && classes.isNotEmpty ? classes.first.id : null,
-      ));
+      final exams = state.kind == ReportKind.examResults
+          ? await _repository.getExamOptions()
+          : state.exams;
+      emit(
+        state.copyWith(
+          classes: classes,
+          exams: exams,
+          // Attendance needs one class; fee reports start with all classes.
+          classId: () =>
+              state.kind == ReportKind.attendance && classes.isNotEmpty
+              ? classes.first.id
+              : null,
+        ),
+      );
       await _build();
     } catch (_) {
       _fail();
@@ -87,7 +105,9 @@ class ReportsCubit extends Cubit<ReportsState> {
 
   Future<void> searchStudents(String query) async {
     try {
-      emit(state.copyWith(studentMatches: await _repository.findStudents(query)));
+      emit(
+        state.copyWith(studentMatches: await _repository.findStudents(query)),
+      );
     } catch (_) {
       _fail();
     }
@@ -106,11 +126,13 @@ class ReportsCubit extends Cubit<ReportsState> {
     return doc == null ? null : ReportCsv.bytes(doc);
   }
 
-  String csvFileName() => '${state.kind.name}_report_${AppDateUtils.toIso(_clock())}.csv';
+  String csvFileName() =>
+      '${state.kind.name}_report_${AppDateUtils.toIso(_clock())}.csv';
 
   Future<void> _build() async {
     // Attendance has no class to show when the school has no classes yet.
-    final noClass = state.kind == ReportKind.attendance && state.classId == null;
+    final noClass =
+        state.kind == ReportKind.attendance && state.classId == null;
     if (state.needsChoice || noClass) {
       emit(state.copyWith(status: ReportsStatus.success, document: () => null));
       return;
@@ -120,10 +142,14 @@ class ReportsCubit extends Cubit<ReportsState> {
     try {
       final document = await _create();
       if (id != _request) return;
-      emit(state.copyWith(status: ReportsStatus.success, document: () => document));
+      emit(
+        state.copyWith(status: ReportsStatus.success, document: () => document),
+      );
     } on ReportsException catch (e) {
       if (id != _request) return;
-      emit(state.copyWith(status: ReportsStatus.failure, errorMessage: e.message));
+      emit(
+        state.copyWith(status: ReportsStatus.failure, errorMessage: e.message),
+      );
     } catch (_) {
       if (id == _request) _fail();
     }
@@ -161,9 +187,11 @@ class ReportsCubit extends Cubit<ReportsState> {
   }
 
   void _fail() {
-    emit(state.copyWith(
-      status: ReportsStatus.failure,
-      errorMessage: AppStrings.somethingWentWrong,
-    ));
+    emit(
+      state.copyWith(
+        status: ReportsStatus.failure,
+        errorMessage: AppStrings.somethingWentWrong,
+      ),
+    );
   }
 }

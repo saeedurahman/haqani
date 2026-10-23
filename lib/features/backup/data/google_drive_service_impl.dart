@@ -13,7 +13,7 @@ import '../../../core/config/google_config.dart';
 import '../../../core/constants/app_constants.dart';
 import '../domain/backup_models.dart';
 import '../domain/google_drive_service.dart';
-import 'settings_store.dart';
+import '../../../core/database/settings_store.dart';
 
 /// Google Drive with the "drive.file" permission: the app can only see the
 /// files it made itself, inside the folder "School Backups".

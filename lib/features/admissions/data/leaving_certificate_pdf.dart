@@ -5,6 +5,7 @@ import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
+import '../../../core/utils/pdf_school_header.dart';
 import '../../../core/utils/number_words.dart';
 import '../domain/certificate_pdf_service.dart';
 import '../domain/leaving_certificate.dart';
@@ -29,6 +30,7 @@ class LeavingCertificatePdf implements CertificatePdfService {
   @override
   Future<Uint8List> build(LeavingCertificate c) async {
     await _loadFonts();
+    final logo = await loadPdfLogo(c.logoPath);
     final doc = pw.Document(
       title: 'School Leaving Certificate - ${c.studentName}',
       theme: pw.ThemeData.withFont(
@@ -47,7 +49,7 @@ class LeavingCertificatePdf implements CertificatePdfService {
           child: pw.Container(
             decoration: pw.BoxDecoration(border: pw.Border.all(color: _accent, width: 0.8)),
             padding: const pw.EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-            child: _content(c),
+            child: _content(c, logo),
           ),
         ),
       ),
@@ -55,24 +57,20 @@ class LeavingCertificatePdf implements CertificatePdfService {
     return doc.save();
   }
 
-  pw.Widget _content(LeavingCertificate c) {
+  pw.Widget _content(LeavingCertificate c, pw.ImageProvider? logo) {
     final relation = c.gender == 'female' ? 'D/O' : 'S/O';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
-        pw.Center(
-          child: pw.Text(
-            c.schoolName,
-            style: pw.TextStyle(fontSize: 26, fontWeight: pw.FontWeight.bold, color: _accent),
-          ),
+        pdfCenteredSchoolHeader(
+          name: c.schoolName,
+          address: c.schoolAddress,
+          phone: c.schoolPhone,
+          logo: logo,
+          nameSize: 26,
+          nameColor: _accent,
+          detailColor: _muted,
         ),
-        if (c.schoolAddress.isNotEmpty)
-          pw.Center(
-            child: pw.Padding(
-              padding: const pw.EdgeInsets.only(top: 4),
-              child: pw.Text(c.schoolAddress, style: const pw.TextStyle(fontSize: 11, color: _muted)),
-            ),
-          ),
         pw.SizedBox(height: 18),
         pw.Center(
           child: pw.Container(

@@ -8,7 +8,7 @@ import 'package:haqani/core/database/app_database.dart';
 import 'package:haqani/core/services/app_paths.dart';
 import 'package:haqani/features/backup/data/backup_file_service.dart';
 import 'package:haqani/features/backup/data/backup_repository_impl.dart';
-import 'package:haqani/features/backup/data/settings_store.dart';
+import 'package:haqani/core/database/settings_store.dart';
 import 'package:haqani/features/backup/domain/backup_models.dart';
 import 'package:haqani/features/backup/domain/google_drive_service.dart';
 import 'package:path/path.dart' as p;

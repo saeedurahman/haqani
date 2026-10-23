@@ -5,7 +5,11 @@ import 'package:equatable/equatable.dart';
 enum ReportPdfStatus { initial, loading, success, failure }
 
 class ReportPdfState extends Equatable {
-  const ReportPdfState({this.status = ReportPdfStatus.initial, this.bytes, this.errorMessage});
+  const ReportPdfState({
+    this.status = ReportPdfStatus.initial,
+    this.bytes,
+    this.errorMessage,
+  });
 
   final ReportPdfStatus status;
   final Uint8List? bytes;

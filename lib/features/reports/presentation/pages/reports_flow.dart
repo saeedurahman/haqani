@@ -9,7 +9,8 @@ class ReportsFlow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Navigator(
-      onGenerateRoute: (_) => MaterialPageRoute<void>(builder: (_) => const ReportsPage()),
+      onGenerateRoute: (_) =>
+          MaterialPageRoute<void>(builder: (_) => const ReportsPage()),
     );
   }
 }

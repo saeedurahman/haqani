@@ -5,10 +5,18 @@ import '../../../../core/utils/app_date_utils.dart';
 import '../../domain/dashboard_summary.dart';
 
 class HeroBanner extends StatelessWidget {
-  const HeroBanner({super.key, required this.summary, required this.now});
+  const HeroBanner({
+    super.key,
+    required this.summary,
+    required this.now,
+    required this.onBackup,
+  });
 
   final DashboardSummary summary;
   final DateTime now;
+
+  /// Opens the Backup page.
+  final VoidCallback onBackup;
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +43,7 @@ class HeroBanner extends StatelessWidget {
               children: [
                 Expanded(child: _Welcome(summary: summary, now: now)),
                 const SizedBox(width: 24),
-                _BackupChip(lastBackup: summary.lastBackup),
+                _BackupChip(lastBackup: summary.lastBackup, now: now, onTap: onBackup),
               ],
             ),
           ),
@@ -103,52 +111,74 @@ class _Welcome extends StatelessWidget {
 }
 
 class _BackupChip extends StatelessWidget {
-  const _BackupChip({required this.lastBackup});
+  const _BackupChip({required this.lastBackup, required this.now, required this.onTap});
 
   final DateTime? lastBackup;
+  final DateTime now;
+  final VoidCallback onTap;
+
+  /// A backup older than this many days is shown as a warning.
+  static const _staleDays = 7;
 
   @override
   Widget build(BuildContext context) {
-    final backedUp = lastBackup != null;
-    return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.16),
+    final last = lastBackup;
+    final stale = last == null || now.difference(last).inDays >= _staleDays;
+    final String title;
+    final String detail;
+    if (last == null) {
+      title = 'No backup yet';
+      detail = 'Tap to back up now';
+    } else {
+      title = AppDateUtils.toDisplay(last);
+      detail = stale ? 'Backup is old. Tap to back up' : 'Last backup';
+    }
+    return Material(
+      color: Colors.white.withValues(alpha: 0.16),
+      borderRadius: BorderRadius.circular(20),
+      child: InkWell(
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.25)),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            backedUp ? Icons.verified_rounded : Icons.cloud_off_rounded,
-            color: backedUp ? AppColors.gold : Colors.white70,
-            size: 30,
+        onTap: onTap,
+        child: Container(
+          padding: const EdgeInsets.all(20),
+          decoration: BoxDecoration(
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(
+              color: stale ? AppColors.gold.withValues(alpha: 0.9) : Colors.white.withValues(alpha: 0.25),
+              width: stale ? 1.6 : 1,
+            ),
           ),
-          const SizedBox(width: 14),
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(
-                'Last backup',
-                style: TextStyle(
-                  color: Colors.white.withValues(alpha: 0.75),
-                  fontSize: 12,
-                ),
+              Icon(
+                stale ? Icons.warning_amber_rounded : Icons.verified_rounded,
+                color: AppColors.gold,
+                size: 30,
               ),
-              const SizedBox(height: 2),
-              Text(
-                backedUp ? AppDateUtils.toDisplay(lastBackup!) : 'No backup yet',
-                style: const TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.w700,
-                ),
+              const SizedBox(width: 14),
+              Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    detail,
+                    style: TextStyle(color: Colors.white.withValues(alpha: 0.8), fontSize: 12),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    title,
+                    style: const TextStyle(
+                      color: Colors.white,
+                      fontSize: 16,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                ],
               ),
             ],
           ),
-        ],
+        ),
       ),
     );
   }

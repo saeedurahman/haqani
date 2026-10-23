@@ -13,7 +13,11 @@ import '../cubit/report_pdf_state.dart';
 
 /// Shows a report as a PDF, with Print and Save.
 class ReportPdfPage extends StatelessWidget {
-  const ReportPdfPage({super.key, required this.document, required this.fileName});
+  const ReportPdfPage({
+    super.key,
+    required this.document,
+    required this.fileName,
+  });
 
   final ReportDocument document;
   final String fileName;

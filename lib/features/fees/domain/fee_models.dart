@@ -181,6 +181,8 @@ class FeeReceipt extends Equatable {
     required this.date,
     required this.schoolName,
     required this.schoolAddress,
+    this.schoolPhone = '',
+    this.logoPath,
     required this.lines,
   });
 
@@ -188,13 +190,18 @@ class FeeReceipt extends Equatable {
   final DateTime date;
   final String schoolName;
   final String schoolAddress;
+  final String schoolPhone;
+
+  /// Full path of the school logo, or null.
+  final String? logoPath;
   final List<ReceiptLine> lines;
 
   int get totalPaid => lines.fold(0, (sum, l) => sum + l.voucher.paidAmount);
   int get totalBalance => lines.fold(0, (sum, l) => sum + l.voucher.balance);
 
   @override
-  List<Object?> get props => [receiptNo, date, schoolName, schoolAddress, lines];
+  List<Object?> get props =>
+      [receiptNo, date, schoolName, schoolAddress, schoolPhone, logoPath, lines];
 }
 
 class GenerationResult extends Equatable {

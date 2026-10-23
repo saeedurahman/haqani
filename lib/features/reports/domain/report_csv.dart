@@ -21,10 +21,14 @@ class ReportCsv {
       if (table.heading != null) lines.add(_line([table.heading!]));
       lines.add(_line([for (final c in table.columns) c.label]));
       for (final row in table.rows) {
-        lines.add(_line([
-          for (var i = 0; i < row.length; i++)
-            table.columns[i].type == ColumnType.money ? _digits(row[i]) : row[i],
-        ]));
+        lines.add(
+          _line([
+            for (var i = 0; i < row.length; i++)
+              table.columns[i].type == ColumnType.money
+                  ? _digits(row[i])
+                  : row[i],
+          ]),
+        );
       }
     }
     return lines.join('\r\n');
@@ -45,7 +49,8 @@ class ReportCsv {
   static String _line(List<String> cells) => cells.map(_cell).join(',');
 
   static String _cell(String value) {
-    final needsQuotes = value.contains(',') ||
+    final needsQuotes =
+        value.contains(',') ||
         value.contains('"') ||
         value.contains('\n') ||
         value.contains('\r');

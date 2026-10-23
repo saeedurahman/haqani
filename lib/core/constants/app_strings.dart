@@ -28,5 +28,4 @@ class AppStrings {
   static const retry = 'Try Again';
   static const loading = 'Loading...';
   static const somethingWentWrong = 'Something went wrong. Please try again.';
-  static const comingSoon = 'This section is coming soon.';
 }

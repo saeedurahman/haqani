@@ -10,6 +10,7 @@ class StatCard extends StatelessWidget {
     required this.value,
     required this.icon,
     required this.color,
+    this.onTap,
   });
 
   final String label;
@@ -17,9 +18,13 @@ class StatCard extends StatelessWidget {
   final IconData icon;
   final Color color;
 
+  /// Opens the page that belongs to this number.
+  final VoidCallback? onTap;
+
   @override
   Widget build(BuildContext context) {
     return HoverCard(
+      onTap: onTap,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

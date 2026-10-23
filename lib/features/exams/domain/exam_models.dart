@@ -105,11 +105,15 @@ class MarkEntry extends Equatable {
 }
 
 class SchoolInfo extends Equatable {
-  const SchoolInfo({required this.name, this.address = ''});
+  const SchoolInfo({required this.name, this.address = '', this.phone = '', this.logoPath});
 
   final String name;
   final String address;
+  final String phone;
+
+  /// Full path of the school logo, or null.
+  final String? logoPath;
 
   @override
-  List<Object?> get props => [name, address];
+  List<Object?> get props => [name, address, phone, logoPath];
 }

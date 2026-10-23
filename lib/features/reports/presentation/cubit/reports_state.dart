@@ -57,7 +57,8 @@ class ReportsState extends Equatable {
   final ReportDocument? document;
   final String? errorMessage;
 
-  ClassOption? get selectedClass => classes.where((c) => c.id == classId).firstOrNull;
+  ClassOption? get selectedClass =>
+      classes.where((c) => c.id == classId).firstOrNull;
 
   /// The report with the search applied. This is also what gets exported.
   ReportDocument? get visibleDocument => document?.filtered(search);
@@ -106,21 +107,21 @@ class ReportsState extends Equatable {
 
   @override
   List<Object?> get props => [
-        kind,
-        status,
-        classes,
-        exams,
-        studentMatches,
-        classId,
-        sectionId,
-        month,
-        from,
-        to,
-        feeStatus,
-        examId,
-        student,
-        search,
-        document,
-        errorMessage,
-      ];
+    kind,
+    status,
+    classes,
+    exams,
+    studentMatches,
+    classId,
+    sectionId,
+    month,
+    from,
+    to,
+    feeStatus,
+    examId,
+    student,
+    search,
+    document,
+    errorMessage,
+  ];
 }

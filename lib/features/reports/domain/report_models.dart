@@ -66,12 +66,12 @@ class ReportTable extends Equatable {
   final bool boldLastRow;
 
   ReportTable copyWith({List<List<String>>? rows}) => ReportTable(
-        heading: heading,
-        columns: columns,
-        rows: rows ?? this.rows,
-        searchable: searchable,
-        boldLastRow: boldLastRow,
-      );
+    heading: heading,
+    columns: columns,
+    rows: rows ?? this.rows,
+    searchable: searchable,
+    boldLastRow: boldLastRow,
+  );
 
   @override
   List<Object?> get props => [heading, columns, rows, searchable, boldLastRow];
@@ -108,7 +108,8 @@ class ReportDocument extends Equatable {
               ? t.copyWith(
                   rows: [
                     for (final row in t.rows)
-                      if (row.any((cell) => cell.toLowerCase().contains(q))) row,
+                      if (row.any((cell) => cell.toLowerCase().contains(q)))
+                        row,
                   ],
                 )
               : t,

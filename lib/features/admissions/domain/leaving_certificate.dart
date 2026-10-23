@@ -6,6 +6,8 @@ class LeavingCertificate extends Equatable {
   const LeavingCertificate({
     required this.schoolName,
     required this.schoolAddress,
+    this.schoolPhone = '',
+    this.logoPath,
     required this.admissionNo,
     required this.studentName,
     required this.fatherName,
@@ -25,6 +27,10 @@ class LeavingCertificate extends Equatable {
 
   final String schoolName;
   final String schoolAddress;
+  final String schoolPhone;
+
+  /// Full path of the school logo, or null.
+  final String? logoPath;
   final String admissionNo;
   final String studentName;
   final String fatherName;
@@ -62,6 +68,8 @@ class LeavingCertificate extends Equatable {
     return LeavingCertificate(
       schoolName: schoolName,
       schoolAddress: schoolAddress,
+      schoolPhone: schoolPhone,
+      logoPath: logoPath,
       gender: gender,
       admissionNo: admissionNo ?? this.admissionNo,
       studentName: studentName ?? this.studentName,
@@ -84,6 +92,8 @@ class LeavingCertificate extends Equatable {
   List<Object?> get props => [
         schoolName,
         schoolAddress,
+        schoolPhone,
+        logoPath,
         admissionNo,
         studentName,
         fatherName,

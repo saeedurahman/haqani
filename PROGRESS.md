@@ -22,7 +22,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 9 | Reports | [x] | claude/focused-wright-p1vttv |
 | 10 | WhatsApp share | [x] | claude/focused-wright-p1vttv |
 | 11 | Backup & Restore (local + Google Drive) | [x] | claude/focused-wright-p1vttv |
-| 12 | Settings & Polish | [ ] | |
+| 12 | Settings & Polish | [x] | claude/focused-wright-p1vttv |
 
 ## Current Task
 None.
@@ -127,9 +127,16 @@ None.
   - New shared `AppPaths` (database file, documents, backup folder), `AppRestarter`, `FileSize`.
   - 62 new tests (zip contents, real restore round trip, prune, path fix, bad files, daily auto backup, offline queue, Drive fakes, cubit, page flows, file size). Total 384, all pass. `flutter analyze`: no issues.
 
+- 2026-10-23 | Module 12 Settings & Polish:
+  - **Settings page:** school name (required), address, phone, and logo (PNG/JPG up to 5 MB, checked by file content, old logo file removed). Shows data folder with "Open Folder", app version, and a "Go to Backup" button.
+  - **Logo and name everywhere:** sidebar brand, and the headers of the receipt, result card, leaving certificate and report PDFs (with school phone). A missing logo file falls back to the default icon.
+  - **Dashboard final:** six clickable cards (students, present, absent, fee collected, pending fees, defaulters), quick actions, and a "Last backup" chip that opens Backup and turns gold when the backup is missing or 7+ days old.
+  - **Polish:** the "coming soon" page is removed (every menu item has a real page). In release builds an unexpected screen error shows a friendly message and is logged, instead of the red error screen. Windows window title, size and file info set to the school.
+  - **Code:** `SettingsStore` moved to `core/database`. The reports repository (497 lines) was split into people, class and fee report files; behaviour unchanged.
+  - **Performance:** tested with 1,500 students, 30,000 attendance rows, 7,500 vouchers, 9,000 marks. All main queries under about 170 ms (in-memory DB). No indexes were needed.
+  - 38 new tests. Total 422, all pass. `flutter analyze`: no issues.
+
 ## Known Issues
-- Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
-- `school_name` and `last_backup_time` settings have no screen yet (Settings and Backup modules).
 - Classes page: reorder is hidden while a search is active. Teachers list stays empty until the Staff module adds staff.
 - Students: Admissions (module 4) will add the automatic admission number flow and certificate; the form here only suggests the next number.
 - Students: opening attached files uses the Windows default app; untested on Windows.
@@ -154,6 +161,9 @@ None.
 - Backup: automatic backup runs when the app starts (once a day). A backup "on app close" is not done, because Windows gives no safe time to run it. If the PC is never closed and the app stays open for days, press Back Up Now.
 - Backup: the Drive file imports `package:http` (already installed by googleapis_auth) in the Drive file, with an `ignore` comment, because googleapis_auth needs an http client. No new package was added to `pubspec.yaml`.
 - Backup: attached documents are included in the zip; a very large documents folder makes backups big and slow.
+- Settings: the logo picker, "Open Folder", the PDFs with a logo and the Windows title/file info could not be run or built in the cloud (no Windows). The owner must check them.
+- Performance numbers are from an in-memory database in the cloud, not from a real Windows PC.
+- Fees: the open question about a payments table (see the Fees issue above) is still waiting for your decision.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -280,6 +290,16 @@ None.
 9. Restore from Google Drive: On Google Drive tab, Load backups, Restore one.
 10. Try restoring a wrong file (rename a .txt to a backup name is not possible from the page; the list only shows real backups). Try Disconnect: Drive tab disappears, nothing is deleted on Drive.
 11. If possible, copy a backup zip to another Windows user/PC, restore there, and check attached documents still open.
+
+### Module 12
+1. Settings: change school name, address, phone and Save. The sidebar name updates at once. Empty name: red message.
+2. Choose Logo: pick a PNG or JPG. It shows in Settings and in the sidebar. Try a .txt renamed to .png and a very large picture: clear red message.
+3. Remove Logo: the default icon returns. Close and reopen the app: the logo/name stay.
+4. Print a fee receipt, a result card, a leaving certificate and a report PDF: each shows logo, name, address and phone.
+5. Open Folder opens the data folder in Explorer. Go to Backup opens the Backup page.
+6. Dashboard: all six cards open their pages; the backup chip opens Backup. Numbers match the real data.
+7. The window title reads "Rozatul Atfal - School Management" and opens at a good size.
+8. With a school of 1000+ students, check lists, search, attendance and the dashboard feel quick.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

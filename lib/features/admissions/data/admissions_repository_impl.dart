@@ -62,6 +62,8 @@ class AdmissionsRepositoryImpl implements AdmissionsRepository {
     return LeavingCertificate(
       schoolName: await _setting(AppConstants.settingSchoolName) ?? AppStrings.defaultSchoolName,
       schoolAddress: await _setting(AppConstants.settingSchoolAddress) ?? '',
+      schoolPhone: await _setting(AppConstants.settingSchoolPhone) ?? '',
+      logoPath: await _setting(AppConstants.settingLogoPath),
       admissionNo: s.admissionNo,
       studentName: s.name,
       fatherName: s.fatherName,

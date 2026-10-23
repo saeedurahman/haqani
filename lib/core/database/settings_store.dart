@@ -1,4 +1,4 @@
-import '../../../core/database/app_database.dart';
+import 'app_database.dart';
 
 /// Reads and writes values in the `app_settings` table.
 class SettingsStore {

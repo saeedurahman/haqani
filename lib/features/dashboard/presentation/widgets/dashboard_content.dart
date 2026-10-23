@@ -26,7 +26,13 @@ class DashboardContent extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        FadeSlideIn(child: HeroBanner(summary: summary, now: now)),
+        FadeSlideIn(
+          child: HeroBanner(
+            summary: summary,
+            now: now,
+            onBackup: () => nav.select(AppSection.backup),
+          ),
+        ),
         const SizedBox(height: 36),
         const FadeSlideIn(
           delay: Duration(milliseconds: 80),
@@ -74,6 +80,7 @@ class DashboardContent extends StatelessWidget {
         FadeSlideIn(
           delay: const Duration(milliseconds: 260),
           child: AdaptiveGrid(
+            maxColumns: 3,
             minItemWidth: 250,
             children: [
               StatCard(
@@ -81,24 +88,44 @@ class DashboardContent extends StatelessWidget {
                 value: '${summary.totalStudents}',
                 icon: Icons.school_rounded,
                 color: AppColors.primary,
+                onTap: () => nav.select(AppSection.students),
               ),
               StatCard(
                 label: 'Present today',
                 value: '${summary.presentToday}',
                 icon: Icons.how_to_reg_rounded,
                 color: AppColors.success,
+                onTap: () => nav.select(AppSection.attendance),
+              ),
+              StatCard(
+                label: 'Absent today',
+                value: '${summary.absentToday}',
+                icon: Icons.person_off_rounded,
+                color: AppColors.danger,
+                onTap: () => nav.select(AppSection.attendance),
               ),
               StatCard(
                 label: 'Fees collected this month',
                 value: MoneyUtils.format(summary.feesCollectedThisMonth),
                 icon: Icons.payments_rounded,
                 color: AppColors.warning,
+                onTap: () => nav.select(AppSection.fees),
+              ),
+              StatCard(
+                label: summary.defaulters == 1
+                    ? 'Fee pending (1 student)'
+                    : 'Fee pending (${summary.defaulters} students)',
+                value: MoneyUtils.format(summary.pendingFees),
+                icon: Icons.hourglass_bottom_rounded,
+                color: summary.pendingFees > 0 ? AppColors.danger : AppColors.textMuted,
+                onTap: () => nav.select(AppSection.reports),
               ),
               StatCard(
                 label: 'Teachers & staff',
                 value: '${summary.totalStaff}',
                 icon: Icons.badge_rounded,
                 color: AppColors.info,
+                onTap: () => nav.select(AppSection.staff),
               ),
             ],
           ),

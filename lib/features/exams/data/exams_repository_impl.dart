@@ -172,6 +172,8 @@ class ExamsRepositoryImpl implements ExamsRepository {
     return SchoolInfo(
       name: await setting(AppConstants.settingSchoolName) ?? AppStrings.defaultSchoolName,
       address: await setting(AppConstants.settingSchoolAddress) ?? '',
+      phone: await setting(AppConstants.settingSchoolPhone) ?? '',
+      logoPath: await setting(AppConstants.settingLogoPath),
     );
   }
 

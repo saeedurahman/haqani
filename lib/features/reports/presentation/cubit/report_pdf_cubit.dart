@@ -19,10 +19,12 @@ class ReportPdfCubit extends Cubit<ReportPdfState> {
       final bytes = await _pdf.build(document, school);
       emit(ReportPdfState(status: ReportPdfStatus.success, bytes: bytes));
     } catch (_) {
-      emit(const ReportPdfState(
-        status: ReportPdfStatus.failure,
-        errorMessage: AppStrings.somethingWentWrong,
-      ));
+      emit(
+        const ReportPdfState(
+          status: ReportPdfStatus.failure,
+          errorMessage: AppStrings.somethingWentWrong,
+        ),
+      );
     }
   }
 }
