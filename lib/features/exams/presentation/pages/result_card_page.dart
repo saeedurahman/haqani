@@ -9,7 +9,9 @@ import '../../../../core/utils/app_date_utils.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/loading_view.dart';
 import '../../../../core/widgets/section_card.dart';
+import '../../../../core/widgets/snack.dart';
 import '../../../../core/widgets/status_chip.dart';
+import '../../../../core/widgets/whatsapp_button.dart';
 import '../../domain/result_card.dart';
 import '../cubit/result_card_cubit.dart';
 import '../cubit/result_card_state.dart';
@@ -33,7 +35,15 @@ class ResultCardPage extends StatelessWidget {
           scrolledUnderElevation: 0,
           title: Text(studentId == null ? 'All Result Cards' : 'Result Card'),
         ),
-        body: BlocBuilder<ResultCardCubit, ResultCardState>(
+        body: BlocConsumer<ResultCardCubit, ResultCardState>(
+          listenWhen: (a, b) => a.feedbackId != b.feedbackId && b.feedback != null,
+          listener: (context, state) {
+            if (state.feedbackIsError) {
+              Snack.error(context, state.feedback!);
+            } else {
+              Snack.success(context, state.feedback!);
+            }
+          },
           builder: (context, state) {
             switch (state.status) {
               case ResultCardStatus.initial:
@@ -71,7 +81,19 @@ class _Content extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           if (single) ...[
-            SizedBox(width: 380, child: SingleChildScrollView(child: _History(history: state.history))),
+            SizedBox(
+              width: 380,
+              child: SingleChildScrollView(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    WhatsAppButton(onPressed: () => context.read<ResultCardCubit>().sendWhatsApp()),
+                    const SizedBox(height: 20),
+                    _History(history: state.history),
+                  ],
+                ),
+              ),
+            ),
             const SizedBox(width: 24),
           ],
           Expanded(

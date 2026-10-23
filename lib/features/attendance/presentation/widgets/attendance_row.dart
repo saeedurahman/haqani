@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/whatsapp_button.dart';
 import '../../../students/presentation/widgets/student_avatar.dart';
 import '../../domain/attendance_models.dart';
 import 'status_toggle.dart';
 
 class AttendanceRow extends StatelessWidget {
-  const AttendanceRow({super.key, required this.entry, required this.onChanged});
+  const AttendanceRow({
+    super.key,
+    required this.entry,
+    required this.onChanged,
+    required this.onWhatsApp,
+  });
 
   final AttendanceEntry entry;
   final ValueChanged<String> onChanged;
+
+  /// Opens WhatsApp to tell the parent about the absence.
+  final VoidCallback onWhatsApp;
 
   @override
   Widget build(BuildContext context) {
@@ -40,6 +49,10 @@ class AttendanceRow extends StatelessWidget {
               ],
             ),
           ),
+          if (entry.status == AttendanceStatus.absent) ...[
+            WhatsAppIconButton(onPressed: onWhatsApp, tooltip: 'Tell the parent on WhatsApp'),
+            const SizedBox(width: 12),
+          ],
           StatusToggle(status: entry.status, onChanged: onChanged),
         ],
       ),

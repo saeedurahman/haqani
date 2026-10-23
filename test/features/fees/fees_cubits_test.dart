@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../../support/fake_whatsapp.dart';
+import 'package:haqani/core/services/whatsapp_service.dart';
 import 'package:haqani/core/constants/app_strings.dart';
 import 'package:haqani/features/fees/domain/fee_models.dart';
 import 'package:haqani/features/fees/domain/fees_repository.dart';
@@ -149,7 +151,12 @@ void main() {
   final now = DateTime(2026, 5, 12);
   late _FakeRepository repo;
 
-  setUp(() => repo = _FakeRepository());
+  late FakeWhatsAppService whatsApp;
+
+  setUp(() {
+    repo = _FakeRepository();
+    whatsApp = FakeWhatsAppService();
+  });
 
   group('FeeStructureCubit', () {
     test('load, then save shows the class name and the new fee', () async {
@@ -184,7 +191,7 @@ void main() {
   });
 
   group('VouchersCubit', () {
-    VouchersCubit make() => VouchersCubit(repo, clock: () => now);
+    VouchersCubit make() => VouchersCubit(repo, whatsApp, clock: () => now);
 
     test('load starts on the current month and the first class', () async {
       repo.vouchers = [_voucher(_ali)];
@@ -241,7 +248,7 @@ void main() {
     });
 
     test('moving back over New Year works', () async {
-      final cubit = VouchersCubit(repo, clock: () => DateTime(2026, 1, 5));
+      final cubit = VouchersCubit(repo, whatsApp, clock: () => DateTime(2026, 1, 5));
       await cubit.load();
 
       await cubit.moveMonth(-1);
@@ -429,6 +436,33 @@ void main() {
       await cubit.selectStudent(_ali);
 
       expect(cubit.state.status, CollectFeeStatus.failure);
+      await cubit.close();
+    });
+  });
+
+  group('VouchersCubit WhatsApp', () {
+    test('sends a fee reminder to the parent of the voucher', () async {
+      final cubit = VouchersCubit(repo, whatsApp, clock: () => now);
+
+      await cubit.remind(_voucher(_ali, paid: 500));
+
+      expect(whatsApp.sent.single.studentId, 1);
+      expect(whatsApp.sent.single.body, contains('reminder'));
+      expect(whatsApp.sent.single.body, contains('Ali'));
+      expect(whatsApp.sent.single.body, contains('May 2026'));
+      expect(whatsApp.sent.single.body, contains('Balance: Rs 1,000'));
+      expect(cubit.state.feedback, contains('WhatsApp opened'));
+      await cubit.close();
+    });
+
+    test('shows why it could not open WhatsApp', () async {
+      whatsApp.result = WhatsAppResult.failed;
+      final cubit = VouchersCubit(repo, whatsApp, clock: () => now);
+
+      await cubit.remind(_voucher(_ali));
+
+      expect(cubit.state.feedbackIsError, isTrue);
+      expect(cubit.state.feedback, contains('could not be opened'));
       await cubit.close();
     });
   });

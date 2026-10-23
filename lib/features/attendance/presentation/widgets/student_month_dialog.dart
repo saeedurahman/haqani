@@ -3,21 +3,35 @@ import 'package:intl/intl.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_button.dart';
+import '../../../../core/widgets/whatsapp_button.dart';
 import '../../domain/attendance_models.dart';
 import 'status_colors.dart';
 import 'summary_chips.dart';
 
 /// Day by day attendance of one student for one month.
 class StudentMonthDialog extends StatelessWidget {
-  const StudentMonthDialog({super.key, required this.row, required this.month});
+  const StudentMonthDialog({
+    super.key,
+    required this.row,
+    required this.month,
+    required this.onWhatsApp,
+  });
 
   final MonthlyAttendanceRow row;
   final DateTime month;
 
-  static Future<void> show(BuildContext context, MonthlyAttendanceRow row, DateTime month) {
+  /// Opens WhatsApp with this month's attendance for the parent.
+  final VoidCallback onWhatsApp;
+
+  static Future<void> show(
+    BuildContext context,
+    MonthlyAttendanceRow row,
+    DateTime month, {
+    required VoidCallback onWhatsApp,
+  }) {
     return showDialog<void>(
       context: context,
-      builder: (_) => StudentMonthDialog(row: row, month: month),
+      builder: (_) => StudentMonthDialog(row: row, month: month, onWhatsApp: onWhatsApp),
     );
   }
 
@@ -56,9 +70,19 @@ class StudentMonthDialog extends StatelessWidget {
                 ],
               ),
               const SizedBox(height: 24),
-              Align(
-                alignment: Alignment.centerRight,
-                child: AppButton(label: 'Close', onPressed: () => Navigator.of(context).pop()),
+              Wrap(
+                alignment: WrapAlignment.end,
+                spacing: 12,
+                runSpacing: 12,
+                children: [
+                  WhatsAppButton(
+                    onPressed: () {
+                      Navigator.of(context).pop();
+                      onWhatsApp();
+                    },
+                  ),
+                  AppButton(label: 'Close', onPressed: () => Navigator.of(context).pop()),
+                ],
               ),
             ],
           ),

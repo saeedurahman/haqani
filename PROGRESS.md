@@ -20,7 +20,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 7 | Staff | [x] | claude/focused-wright-p1vttv |
 | 8 | Exams & Results | [x] | claude/focused-wright-p1vttv |
 | 9 | Reports | [x] | claude/focused-wright-p1vttv |
-| 10 | WhatsApp share | [ ] | |
+| 10 | WhatsApp share | [x] | claude/focused-wright-p1vttv |
 | 11 | Backup & Restore (local + Google Drive) | [ ] | |
 | 12 | Settings & Polish | [ ] | |
 
@@ -108,6 +108,13 @@ None.
   - Search box filters the rows of any list report (on screen and in the exported file).
   - **Export:** "PDF / Print" opens a PDF preview (print or save; wide reports print sideways, several pages with page numbers, school name in the header). "Save as CSV" opens a Save dialog; the file opens in Excel with Urdu names and money as plain numbers.
   - 42 new tests (CSV, search filter, all 7 reports with a real database, cubit, PDF, page flows, defaulters). Total 290, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 10 WhatsApp share:
+  - `WhatsAppService` (core): finds the parent's number from the student record (WhatsApp number first, then phone), converts `03xx` to `92 3xx` (existing `PhoneUtils`), and opens `https://wa.me/92...?text=...` with `url_launcher` (external app / browser). Nothing is sent automatically: the user checks the message and presses Send in WhatsApp.
+  - The message always starts with "Assalam o Alaikum," and ends with the school name (from Settings, default Rozatul Atfal). Message texts are in one place (`WhatsAppMessages`), simple English.
+  - Clear messages when WhatsApp opened, when no valid number is saved ("Add it in the student profile"), or when WhatsApp cannot be opened.
+  - Buttons: **Student page** (WhatsApp button in the header: attendance % and fee due), **Fees > Vouchers** (green chat icon on every voucher with a balance: fee reminder), **Receipt page** ("Send to Parent on WhatsApp": receipt no, amount, balance; sisters on one receipt go to the first student's parent), **Result card page** (marks, grade, position, result), **Attendance** (green chat icon next to an Absent student on Mark Attendance and on Daily Report; "Send to Parent on WhatsApp" in the monthly student dialog with present/absent/leave/%).
+  - 6 cubits got a WhatsApp action (constructor takes the service); DI registers it. Existing tests updated; shared `FakeWhatsAppService` for tests.
+  - 32 new tests (service with fake launcher, all message texts, 6 cubit actions, receipt cubit, 3 page flows). Total 322, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -129,6 +136,8 @@ None.
 - Reports: the PDF preview screen and the CSV save dialog could not be run in the cloud (they need Windows plugins). The PDF and CSV content were checked.
 - Reports: Defaulters lists active students only. A student who left with unpaid fee is not shown.
 - Reports: the Dashboard and WhatsApp sharing are separate modules; there is no "send report" button here.
+- WhatsApp: opening WhatsApp could not be tested in the cloud. The link format and the number conversion are tested; the owner must try it on Windows.
+- WhatsApp: one message at a time (no bulk send), by design. If the parent has no valid number the button shows a message instead.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -231,6 +240,17 @@ None.
 9. Type in "Search in this report" and see the rows narrow.
 10. Click "PDF / Print": check the preview, then print to "Microsoft Print to PDF". Wide reports (many subjects) should print sideways. Check Urdu names.
 11. Click "Save as CSV", choose a folder, open the file in Excel: columns, Urdu names, money as numbers.
+
+### Module 10
+1. In Students, open a student whose profile has a phone like 0300-1234567 (or a WhatsApp number). Click the WhatsApp button in the header: WhatsApp (Desktop or Web) opens with a message ready. The number in the chat should be +92 300 1234567. Press Send there yourself.
+2. Open a student with no phone: a message says no valid number is saved.
+3. Attendance > Mark Attendance: mark a student Absent. A green chat icon appears next to the buttons. Click it: message "... was absent from school on ...".
+4. Attendance > Daily Report: green icon for Absent students. Monthly Report: click a student, click "Send to Parent on WhatsApp": monthly counts.
+5. Fees > Vouchers: green icon on unpaid/partial vouchers: reminder with the balance. No icon on paid vouchers.
+6. Receive a fee: on the receipt page click "Send to Parent on WhatsApp". Try with two sisters on one receipt.
+7. Exams > open an exam > Results > click a student: "Send to Parent on WhatsApp" with marks and position.
+8. Check Urdu names show correctly in the WhatsApp message text.
+9. If WhatsApp is not installed, the browser (web.whatsapp.com) should open, or the app shows "WhatsApp could not be opened".
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

@@ -1,18 +1,21 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/whatsapp_service.dart';
 import '../../../../core/utils/app_date_utils.dart';
+import '../../../../core/utils/whatsapp_messages.dart';
 import '../../domain/fee_models.dart';
 import '../../domain/fees_repository.dart';
 import 'vouchers_state.dart';
 
 /// Monthly vouchers of a class: make them, and see who paid and who did not.
 class VouchersCubit extends Cubit<VouchersState> {
-  VouchersCubit(this._repository, {DateTime Function()? clock})
+  VouchersCubit(this._repository, this._whatsApp, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now,
         super(VouchersState(month: AppDateUtils.toMonth((clock ?? DateTime.now)())));
 
   final FeesRepository _repository;
+  final WhatsAppService _whatsApp;
   final DateTime Function() _clock;
   int _request = 0;
 
@@ -57,6 +60,23 @@ class VouchersCubit extends Cubit<VouchersState> {
 
   /// Reloads the list, for example after a payment on another tab.
   Future<void> refresh() => _loadVouchers();
+
+  /// Opens WhatsApp with a fee reminder for the parent.
+  Future<void> remind(FeeVoucher voucher) async {
+    final result = await _whatsApp.sendToParent(
+      studentId: voucher.student.id,
+      body: WhatsAppMessages.feeReminder(
+        studentName: voucher.student.name,
+        month: voucher.forMonth,
+        balance: voucher.balance,
+      ),
+    );
+    emit(state.copyWith(
+      feedback: result.userMessage,
+      feedbackIsError: result.isError,
+      feedbackId: state.feedbackId + 1,
+    ));
+  }
 
   Future<void> generate({bool includeAnnualFee = false}) async {
     final classId = state.classId;

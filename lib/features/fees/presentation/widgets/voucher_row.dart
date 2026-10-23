@@ -2,15 +2,24 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../../core/widgets/whatsapp_button.dart';
 import '../../../../core/utils/money_utils.dart';
 import '../../domain/fee_models.dart';
 import 'fee_status_chip.dart';
 
 class VoucherRow extends StatelessWidget {
-  const VoucherRow({super.key, required this.voucher, required this.onReceipt});
+  const VoucherRow({
+    super.key,
+    required this.voucher,
+    required this.onReceipt,
+    required this.onRemind,
+  });
 
   final FeeVoucher voucher;
   final VoidCallback onReceipt;
+
+  /// Opens WhatsApp with a fee reminder. Only shown while a balance is left.
+  final VoidCallback onRemind;
 
   @override
   Widget build(BuildContext context) {
@@ -55,6 +64,12 @@ class VoucherRow extends StatelessWidget {
           SizedBox(
             width: 130,
             child: Align(alignment: Alignment.centerRight, child: FeeStatusChip(voucher: voucher)),
+          ),
+          SizedBox(
+            width: 48,
+            child: voucher.balance > 0
+                ? WhatsAppIconButton(onPressed: onRemind, tooltip: 'Send fee reminder on WhatsApp')
+                : null,
           ),
           SizedBox(
             width: 130,

@@ -9,6 +9,7 @@ import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/hover_card.dart';
 import '../../../../core/widgets/loading_view.dart';
+import '../../../../core/widgets/snack.dart';
 import '../../../../core/widgets/status_chip.dart';
 import '../../domain/attendance_models.dart';
 import '../cubit/monthly_report_cubit.dart';
@@ -34,7 +35,15 @@ class _View extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<MonthlyReportCubit>();
-    return BlocBuilder<MonthlyReportCubit, MonthlyReportState>(
+    return BlocConsumer<MonthlyReportCubit, MonthlyReportState>(
+      listenWhen: (a, b) => a.feedbackId != b.feedbackId && b.feedback != null,
+      listener: (context, state) {
+        if (state.feedbackIsError) {
+          Snack.error(context, state.feedback!);
+        } else {
+          Snack.success(context, state.feedback!);
+        }
+      },
       builder: (context, state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -93,7 +102,12 @@ class _View extends StatelessWidget {
           separatorBuilder: (_, _) => const SizedBox(height: 10),
           itemBuilder: (context, i) => _MonthRow(
             row: state.rows[i],
-            onTap: () => StudentMonthDialog.show(context, state.rows[i], state.month),
+            onTap: () => StudentMonthDialog.show(
+              context,
+              state.rows[i],
+              state.month,
+              onWhatsApp: () => context.read<MonthlyReportCubit>().sendMonth(state.rows[i]),
+            ),
           ),
         );
     }

@@ -8,6 +8,8 @@ import '../../../../core/di/injection.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/loading_view.dart';
+import '../../../../core/widgets/snack.dart';
+import '../../../../core/widgets/whatsapp_button.dart';
 import '../../domain/fee_models.dart';
 import '../cubit/receipt_cubit.dart';
 import '../cubit/receipt_state.dart';
@@ -30,8 +32,24 @@ class ReceiptPage extends StatelessWidget {
           elevation: 0,
           scrolledUnderElevation: 0,
           title: Text('Receipt No ${receipt?.receiptNo ?? receiptNo}'),
+          actions: [
+            Builder(
+              builder: (context) => Padding(
+                padding: const EdgeInsets.only(right: AppConstants.pagePadding),
+                child: WhatsAppButton(onPressed: () => context.read<ReceiptCubit>().sendWhatsApp()),
+              ),
+            ),
+          ],
         ),
-        body: BlocBuilder<ReceiptCubit, ReceiptState>(
+        body: BlocConsumer<ReceiptCubit, ReceiptState>(
+          listenWhen: (a, b) => a.feedbackId != b.feedbackId && b.feedback != null,
+          listener: (context, state) {
+            if (state.feedbackIsError) {
+              Snack.error(context, state.feedback!);
+            } else {
+              Snack.success(context, state.feedback!);
+            }
+          },
           builder: (context, state) {
             switch (state.status) {
               case ReceiptStatus.initial:

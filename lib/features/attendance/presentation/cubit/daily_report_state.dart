@@ -14,6 +14,9 @@ class DailyReportState extends Equatable {
     required this.date,
     this.entries = const [],
     this.errorMessage,
+    this.feedback,
+    this.feedbackIsError = false,
+    this.feedbackId = 0,
   });
 
   final DailyReportStatus status;
@@ -23,6 +26,11 @@ class DailyReportState extends Equatable {
   final DateTime date;
   final List<AttendanceEntry> entries;
   final String? errorMessage;
+
+  /// One-time message after Send on WhatsApp. [feedbackId] changes every time.
+  final String? feedback;
+  final bool feedbackIsError;
+  final int feedbackId;
 
   ClassOption? get selectedClass => classes.where((c) => c.id == classId).firstOrNull;
 
@@ -36,6 +44,9 @@ class DailyReportState extends Equatable {
     DateTime? date,
     List<AttendanceEntry>? entries,
     String? errorMessage,
+    String? feedback,
+    bool? feedbackIsError,
+    int? feedbackId,
   }) {
     return DailyReportState(
       status: status ?? this.status,
@@ -45,9 +56,23 @@ class DailyReportState extends Equatable {
       date: date ?? this.date,
       entries: entries ?? this.entries,
       errorMessage: errorMessage,
+      feedback: feedback,
+      feedbackIsError: feedbackIsError ?? this.feedbackIsError,
+      feedbackId: feedbackId ?? this.feedbackId,
     );
   }
 
   @override
-  List<Object?> get props => [status, classes, classId, sectionId, date, entries, errorMessage];
+  List<Object?> get props => [
+        status,
+        classes,
+        classId,
+        sectionId,
+        date,
+        entries,
+        errorMessage,
+        feedback,
+        feedbackIsError,
+        feedbackId,
+      ];
 }

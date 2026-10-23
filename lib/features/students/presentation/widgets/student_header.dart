@@ -11,11 +11,13 @@ class StudentHeader extends StatelessWidget {
     required this.student,
     required this.onEdit,
     required this.onToggleStatus,
+    required this.onWhatsApp,
   });
 
   final Student student;
   final VoidCallback onEdit;
   final VoidCallback onToggleStatus;
+  final VoidCallback onWhatsApp;
 
   @override
   Widget build(BuildContext context) {
@@ -86,6 +88,8 @@ class StudentHeader extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 _HeaderButton(label: 'Edit', icon: Icons.edit_rounded, onPressed: onEdit),
+                const SizedBox(height: 10),
+                _HeaderButton(label: 'WhatsApp', icon: Icons.chat_rounded, onPressed: onWhatsApp),
                 const SizedBox(height: 10),
                 _HeaderButton(
                   label: student.isActive ? 'Mark as Left' : 'Make Active',

@@ -8,7 +8,9 @@ import '../../../../core/widgets/app_date_field.dart';
 import '../../../../core/widgets/empty_state.dart';
 import '../../../../core/widgets/error_view.dart';
 import '../../../../core/widgets/loading_view.dart';
+import '../../../../core/widgets/snack.dart';
 import '../../../../core/widgets/status_chip.dart';
+import '../../../../core/widgets/whatsapp_button.dart';
 import '../../../students/presentation/widgets/student_avatar.dart';
 import '../../domain/attendance_models.dart';
 import '../cubit/daily_report_cubit.dart';
@@ -35,7 +37,15 @@ class _View extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final cubit = context.read<DailyReportCubit>();
-    return BlocBuilder<DailyReportCubit, DailyReportState>(
+    return BlocConsumer<DailyReportCubit, DailyReportState>(
+      listenWhen: (a, b) => a.feedbackId != b.feedbackId && b.feedback != null,
+      listener: (context, state) {
+        if (state.feedbackIsError) {
+          Snack.error(context, state.feedback!);
+        } else {
+          Snack.success(context, state.feedback!);
+        }
+      },
       builder: (context, state) {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -116,7 +126,11 @@ class _View extends StatelessWidget {
                 padding: const EdgeInsets.only(bottom: 24),
                 itemCount: state.entries.length,
                 separatorBuilder: (_, _) => const SizedBox(height: 10),
-                itemBuilder: (context, i) => _ReportRow(entry: state.entries[i]),
+                itemBuilder: (context, i) => _ReportRow(
+                  entry: state.entries[i],
+                  onWhatsApp: () =>
+                      context.read<DailyReportCubit>().sendAbsent(state.entries[i].studentId),
+                ),
               ),
             ),
           ],
@@ -126,9 +140,10 @@ class _View extends StatelessWidget {
 }
 
 class _ReportRow extends StatelessWidget {
-  const _ReportRow({required this.entry});
+  const _ReportRow({required this.entry, required this.onWhatsApp});
 
   final AttendanceEntry entry;
+  final VoidCallback onWhatsApp;
 
   @override
   Widget build(BuildContext context) {
@@ -153,7 +168,14 @@ class _ReportRow extends StatelessWidget {
             ),
           ),
           Text('ID ${entry.admissionNo}', style: Theme.of(context).textTheme.bodyMedium),
-          const SizedBox(width: 24),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 48,
+            child: entry.status == AttendanceStatus.absent
+                ? WhatsAppIconButton(onPressed: onWhatsApp, tooltip: 'Tell the parent on WhatsApp')
+                : null,
+          ),
+          const SizedBox(width: 12),
           SizedBox(
             width: 110,
             child: Align(

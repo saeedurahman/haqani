@@ -51,12 +51,16 @@ import '../../features/dashboard/data/dashboard_repository_impl.dart';
 import '../../features/dashboard/domain/dashboard_repository.dart';
 import '../../features/dashboard/presentation/cubit/dashboard_cubit.dart';
 import '../database/app_database.dart';
+import '../services/whatsapp_service.dart';
 
 final getIt = GetIt.instance;
 
 /// Registers everything the app needs. Pass [database] in tests.
 void configureDependencies({AppDatabase? database}) {
   getIt.registerLazySingleton<AppDatabase>(() => database ?? AppDatabase());
+  getIt.registerLazySingleton<WhatsAppService>(
+    () => WhatsAppServiceImpl(getIt<AppDatabase>()),
+  );
 
   getIt.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(getIt<AppDatabase>()),
@@ -83,7 +87,7 @@ void configureDependencies({AppDatabase? database}) {
     () => StudentFormCubit(getIt<StudentsRepository>()),
   );
   getIt.registerFactory<StudentDetailCubit>(
-    () => StudentDetailCubit(getIt<StudentsRepository>()),
+    () => StudentDetailCubit(getIt<StudentsRepository>(), getIt<WhatsAppService>()),
   );
 
   getIt.registerLazySingleton<CertificatePdfService>(() => LeavingCertificatePdf());
@@ -104,13 +108,13 @@ void configureDependencies({AppDatabase? database}) {
     () => AttendanceRepositoryImpl(getIt<AppDatabase>()),
   );
   getIt.registerFactory<MarkAttendanceCubit>(
-    () => MarkAttendanceCubit(getIt<AttendanceRepository>()),
+    () => MarkAttendanceCubit(getIt<AttendanceRepository>(), getIt<WhatsAppService>()),
   );
   getIt.registerFactory<DailyReportCubit>(
-    () => DailyReportCubit(getIt<AttendanceRepository>()),
+    () => DailyReportCubit(getIt<AttendanceRepository>(), getIt<WhatsAppService>()),
   );
   getIt.registerFactory<MonthlyReportCubit>(
-    () => MonthlyReportCubit(getIt<AttendanceRepository>()),
+    () => MonthlyReportCubit(getIt<AttendanceRepository>(), getIt<WhatsAppService>()),
   );
 
   getIt.registerLazySingleton<ReceiptPdfService>(() => FeeReceiptPdf());
@@ -121,13 +125,17 @@ void configureDependencies({AppDatabase? database}) {
     () => FeeStructureCubit(getIt<FeesRepository>()),
   );
   getIt.registerFactory<VouchersCubit>(
-    () => VouchersCubit(getIt<FeesRepository>()),
+    () => VouchersCubit(getIt<FeesRepository>(), getIt<WhatsAppService>()),
   );
   getIt.registerFactory<CollectFeeCubit>(
     () => CollectFeeCubit(getIt<FeesRepository>()),
   );
   getIt.registerFactory<ReceiptCubit>(
-    () => ReceiptCubit(getIt<FeesRepository>(), getIt<ReceiptPdfService>()),
+    () => ReceiptCubit(
+      getIt<FeesRepository>(),
+      getIt<ReceiptPdfService>(),
+      getIt<WhatsAppService>(),
+    ),
   );
 
   getIt.registerLazySingleton<StaffRepository>(
@@ -148,7 +156,11 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<MarksCubit>(() => MarksCubit(getIt<ExamsRepository>()));
   getIt.registerFactory<ResultCardCubit>(
-    () => ResultCardCubit(getIt<ExamsRepository>(), getIt<ResultCardPdfService>()),
+    () => ResultCardCubit(
+      getIt<ExamsRepository>(),
+      getIt<ResultCardPdfService>(),
+      getIt<WhatsAppService>(),
+    ),
   );
 
   getIt.registerLazySingleton<ReportPdfService>(() => ReportPdf());

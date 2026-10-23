@@ -65,6 +65,7 @@ class MarkAttendanceBody extends StatelessWidget {
               return AttendanceRow(
                 entry: entry,
                 onChanged: (status) => cubit.setStatus(entry.studentId, status),
+                onWhatsApp: () => cubit.sendAbsent(entry.studentId),
               );
             },
           ),

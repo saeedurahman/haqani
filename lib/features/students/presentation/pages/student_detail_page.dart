@@ -104,6 +104,7 @@ class _Content extends StatelessWidget {
                       await cubit.load(student.id);
                     },
                     onToggleStatus: () => _toggle(context),
+                    onWhatsApp: cubit.sendWhatsApp,
                   ),
                   const SizedBox(height: 24),
                   const TabBar(

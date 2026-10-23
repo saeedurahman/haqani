@@ -1,16 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/whatsapp_service.dart';
+import '../../../../core/utils/whatsapp_messages.dart';
 import '../../domain/attendance_repository.dart';
 import 'daily_report_state.dart';
 
 /// Date-wise report: who was present, absent or on leave in one class on one day.
 class DailyReportCubit extends Cubit<DailyReportState> {
-  DailyReportCubit(this._repository, {DateTime Function()? clock})
+  DailyReportCubit(this._repository, this._whatsApp, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now,
         super(DailyReportState(date: _dateOnly((clock ?? DateTime.now)())));
 
   final AttendanceRepository _repository;
+  final WhatsAppService _whatsApp;
   final DateTime Function() _clock;
   int _request = 0;
 
@@ -46,6 +49,21 @@ class DailyReportCubit extends Cubit<DailyReportState> {
     final day = _dateOnly(date);
     emit(state.copyWith(date: day.isAfter(today) ? today : day));
     return _loadReport();
+  }
+
+  /// Opens WhatsApp to tell the parent that the student was absent on this date.
+  Future<void> sendAbsent(int studentId) async {
+    final entry = state.entries.where((e) => e.studentId == studentId).firstOrNull;
+    if (entry == null) return;
+    final result = await _whatsApp.sendToParent(
+      studentId: studentId,
+      body: WhatsAppMessages.absent(studentName: entry.name, date: state.date),
+    );
+    emit(state.copyWith(
+      feedback: result.userMessage,
+      feedbackIsError: result.isError,
+      feedbackId: state.feedbackId + 1,
+    ));
   }
 
   Future<void> _loadReport() async {

@@ -12,6 +12,9 @@ class ReceiptState extends Equatable {
     this.receipt,
     this.pdfBytes,
     this.errorMessage,
+    this.feedback,
+    this.feedbackIsError = false,
+    this.feedbackId = 0,
   });
 
   final ReceiptStatus status;
@@ -19,20 +22,32 @@ class ReceiptState extends Equatable {
   final Uint8List? pdfBytes;
   final String? errorMessage;
 
+  /// One-time message after Send on WhatsApp. [feedbackId] changes every time.
+  final String? feedback;
+  final bool feedbackIsError;
+  final int feedbackId;
+
   ReceiptState copyWith({
     ReceiptStatus? status,
     FeeReceipt? receipt,
     Uint8List? pdfBytes,
     String? errorMessage,
+    String? feedback,
+    bool? feedbackIsError,
+    int? feedbackId,
   }) {
     return ReceiptState(
       status: status ?? this.status,
       receipt: receipt ?? this.receipt,
       pdfBytes: pdfBytes ?? this.pdfBytes,
       errorMessage: errorMessage,
+      feedback: feedback,
+      feedbackIsError: feedbackIsError ?? this.feedbackIsError,
+      feedbackId: feedbackId ?? this.feedbackId,
     );
   }
 
   @override
-  List<Object?> get props => [status, receipt, pdfBytes, errorMessage];
+  List<Object?> get props =>
+      [status, receipt, pdfBytes, errorMessage, feedback, feedbackIsError, feedbackId];
 }

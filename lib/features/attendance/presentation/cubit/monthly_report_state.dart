@@ -14,6 +14,9 @@ class MonthlyReportState extends Equatable {
     required this.month,
     this.rows = const [],
     this.errorMessage,
+    this.feedback,
+    this.feedbackIsError = false,
+    this.feedbackId = 0,
   });
 
   final MonthlyReportStatus status;
@@ -26,6 +29,11 @@ class MonthlyReportState extends Equatable {
   final List<MonthlyAttendanceRow> rows;
   final String? errorMessage;
 
+  /// One-time message after Send on WhatsApp. [feedbackId] changes every time.
+  final String? feedback;
+  final bool feedbackIsError;
+  final int feedbackId;
+
   ClassOption? get selectedClass => classes.where((c) => c.id == classId).firstOrNull;
 
   MonthlyReportState copyWith({
@@ -36,6 +44,9 @@ class MonthlyReportState extends Equatable {
     DateTime? month,
     List<MonthlyAttendanceRow>? rows,
     String? errorMessage,
+    String? feedback,
+    bool? feedbackIsError,
+    int? feedbackId,
   }) {
     return MonthlyReportState(
       status: status ?? this.status,
@@ -45,9 +56,23 @@ class MonthlyReportState extends Equatable {
       month: month ?? this.month,
       rows: rows ?? this.rows,
       errorMessage: errorMessage,
+      feedback: feedback,
+      feedbackIsError: feedbackIsError ?? this.feedbackIsError,
+      feedbackId: feedbackId ?? this.feedbackId,
     );
   }
 
   @override
-  List<Object?> get props => [status, classes, classId, sectionId, month, rows, errorMessage];
+  List<Object?> get props => [
+        status,
+        classes,
+        classId,
+        sectionId,
+        month,
+        rows,
+        errorMessage,
+        feedback,
+        feedbackIsError,
+        feedbackId,
+      ];
 }

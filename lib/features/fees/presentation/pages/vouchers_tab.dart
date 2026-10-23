@@ -175,6 +175,7 @@ class _List extends StatelessWidget {
                   separatorBuilder: (_, _) => const SizedBox(height: 10),
                   itemBuilder: (context, i) => VoucherRow(
                     voucher: visible[i],
+                    onRemind: () => cubit.remind(visible[i]),
                     onReceipt: () => Navigator.of(context).push(MaterialPageRoute<void>(
                       builder: (_) => ReceiptPage(receiptNo: visible[i].receiptNo),
                     )),

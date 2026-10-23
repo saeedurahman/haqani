@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../../support/fake_whatsapp.dart';
+import 'package:haqani/core/services/whatsapp_service.dart';
 import 'package:haqani/core/constants/app_strings.dart';
 import 'package:haqani/features/students/domain/student.dart';
 import 'package:haqani/features/students/domain/student_extras.dart';
@@ -78,14 +80,21 @@ class _FakeRepository implements StudentsRepository {
   Future<void> deleteDocument(int documentId) async =>
       docs.removeWhere((d) => d.id == documentId);
 
+  StudentHistory history = const StudentHistory();
+
   @override
-  Future<StudentHistory> getHistory(int studentId) async => const StudentHistory();
+  Future<StudentHistory> getHistory(int studentId) async => history;
 }
 
 void main() {
   late _FakeRepository repo;
 
-  setUp(() => repo = _FakeRepository());
+  late FakeWhatsAppService whatsApp;
+
+  setUp(() {
+    repo = _FakeRepository();
+    whatsApp = FakeWhatsAppService();
+  });
 
   group('StudentsCubit', () {
     test('load emits loading then success with students and classes', () async {
@@ -200,7 +209,7 @@ void main() {
     final day = DateTime(2026, 6, 1);
 
     test('load fills student, documents and history', () async {
-      final cubit = StudentDetailCubit(repo, clock: () => day);
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => day);
 
       await cubit.load(1);
 
@@ -210,7 +219,7 @@ void main() {
     });
 
     test('missing student gives a failure state', () async {
-      final cubit = StudentDetailCubit(repo, clock: () => day);
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => day);
 
       await cubit.load(99);
 
@@ -219,7 +228,7 @@ void main() {
     });
 
     test('markAsLeft uses today and reports success', () async {
-      final cubit = StudentDetailCubit(repo, clock: () => day);
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => day);
       await cubit.load(1);
 
       await cubit.markAsLeft();
@@ -231,7 +240,7 @@ void main() {
     });
 
     test('reactivate reports success', () async {
-      final cubit = StudentDetailCubit(repo, clock: () => day);
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => day);
       await cubit.load(1);
 
       await cubit.reactivate();
@@ -242,7 +251,7 @@ void main() {
     });
 
     test('adds and removes a document, refreshing the list', () async {
-      final cubit = StudentDetailCubit(repo, clock: () => day);
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => day);
       await cubit.load(1);
 
       await cubit.addDocument('B-Form', '/tmp/bform.pdf');
@@ -254,13 +263,68 @@ void main() {
     });
 
     test('a refused document shows the reason as an error', () async {
-      final cubit = StudentDetailCubit(repo, clock: () => day);
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => day);
       await cubit.load(1);
       repo.saveError = 'The file was not found.';
 
       await cubit.addDocument('X', '/nope');
 
       expect(cubit.state.feedback, 'The file was not found.');
+      expect(cubit.state.feedbackIsError, isTrue);
+      await cubit.close();
+    });
+  });
+
+  group('StudentDetailCubit WhatsApp', () {
+    test('opens WhatsApp for the student with attendance and fee due', () async {
+      repo.history = StudentHistory(
+        attendance: [
+          AttendanceRecord(date: DateTime(2026, 5, 1), status: 'present'),
+          AttendanceRecord(date: DateTime(2026, 5, 2), status: 'present'),
+          AttendanceRecord(date: DateTime(2026, 5, 3), status: 'absent'),
+          AttendanceRecord(date: DateTime(2026, 5, 4), status: 'present'),
+        ],
+        fees: [
+          FeeRecord(
+            receiptNo: '1',
+            date: DateTime(2026, 4, 5),
+            forMonth: '2026-04',
+            total: 1500,
+            paidAmount: 0,
+            status: 'unpaid',
+          ),
+          FeeRecord(
+            receiptNo: '2',
+            date: DateTime(2026, 5, 5),
+            forMonth: '2026-05',
+            total: 3000,
+            paidAmount: 1000,
+            status: 'partial',
+          ),
+        ],
+      );
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => DateTime(2026, 6, 1));
+      await cubit.load(1);
+
+      await cubit.sendWhatsApp();
+
+      expect(whatsApp.sent.single.studentId, 1);
+      expect(whatsApp.sent.single.body, contains('Ali (No class)'));
+      expect(whatsApp.sent.single.body, contains('Attendance so far: 75%'));
+      expect(whatsApp.sent.single.body, contains('Fee due: Rs 2,000'), reason: 'newest month only');
+      expect(cubit.state.feedback, contains('WhatsApp opened'));
+      expect(cubit.state.feedbackIsError, isFalse);
+      await cubit.close();
+    });
+
+    test('tells the user when there is no phone number', () async {
+      whatsApp.result = WhatsAppResult.noNumber;
+      final cubit = StudentDetailCubit(repo, whatsApp, clock: () => DateTime(2026, 6, 1));
+      await cubit.load(1);
+
+      await cubit.sendWhatsApp();
+
+      expect(cubit.state.feedback, contains('No valid phone number'));
       expect(cubit.state.feedbackIsError, isTrue);
       await cubit.close();
     });

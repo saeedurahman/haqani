@@ -1,4 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../../support/fake_whatsapp.dart';
 import 'package:haqani/core/constants/app_strings.dart';
 import 'package:haqani/features/exams/domain/exam_models.dart';
 import 'package:haqani/features/exams/domain/exams_repository.dart';
@@ -144,7 +145,12 @@ class _FakePdf implements ResultCardPdfService {
 void main() {
   late _FakeRepository repo;
 
-  setUp(() => repo = _FakeRepository());
+  late FakeWhatsAppService whatsApp;
+
+  setUp(() {
+    repo = _FakeRepository();
+    whatsApp = FakeWhatsAppService();
+  });
 
   group('ExamsCubit', () {
     test('load gives classes and exams; filter and search go to the repository', () async {
@@ -347,7 +353,7 @@ void main() {
   group('ResultCardCubit', () {
     test('one student: builds the card, the PDF and the history', () async {
       final pdf = _FakePdf();
-      final cubit = ResultCardCubit(repo, pdf);
+      final cubit = ResultCardCubit(repo, pdf, whatsApp);
 
       await cubit.load(1, studentId: 10);
 
@@ -365,7 +371,7 @@ void main() {
 
     test('whole class: one card for every student who has marks, no history', () async {
       final pdf = _FakePdf();
-      final cubit = ResultCardCubit(repo, pdf);
+      final cubit = ResultCardCubit(repo, pdf, whatsApp);
 
       await cubit.load(1);
 
@@ -376,7 +382,7 @@ void main() {
 
     test('nothing to print gives a clear message', () async {
       repo.marks = {};
-      final cubit = ResultCardCubit(repo, _FakePdf());
+      final cubit = ResultCardCubit(repo, _FakePdf(), whatsApp);
 
       await cubit.load(1);
 
@@ -386,13 +392,42 @@ void main() {
     });
 
     test('unknown student and database errors are friendly', () async {
-      final cubit = ResultCardCubit(repo, _FakePdf());
+      final cubit = ResultCardCubit(repo, _FakePdf(), whatsApp);
       await cubit.load(1, studentId: 99);
       expect(cubit.state.errorMessage, 'This student was not found in the exam.');
 
       repo.fail = true;
       await cubit.load(1, studentId: 10);
       expect(cubit.state.errorMessage, AppStrings.somethingWentWrong);
+      await cubit.close();
+    });
+  });
+
+  group('ResultCardCubit WhatsApp', () {
+    test('sends the result of one student', () async {
+      final cubit = ResultCardCubit(repo, _FakePdf(), whatsApp);
+      await cubit.load(1, studentId: 10);
+
+      await cubit.sendWhatsApp();
+
+      expect(whatsApp.sent.single.studentId, 10);
+      final body = whatsApp.sent.single.body;
+      expect(body, contains('Result of Ali - Annual'));
+      expect(body, contains('Marks: 130 / 150'));
+      expect(body, contains('Grade: A+'));
+      expect(body, contains('Position: 1 of 1'));
+      expect(body, contains('Result: Pass'));
+      expect(cubit.state.feedback, contains('WhatsApp opened'));
+      await cubit.close();
+    });
+
+    test('does nothing when the whole class is shown', () async {
+      final cubit = ResultCardCubit(repo, _FakePdf(), whatsApp);
+      await cubit.load(1);
+
+      await cubit.sendWhatsApp();
+
+      expect(whatsApp.sent, isEmpty);
       await cubit.close();
     });
   });

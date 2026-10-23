@@ -1,16 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/whatsapp_service.dart';
+import '../../../../core/utils/whatsapp_messages.dart';
 import '../../domain/attendance_models.dart';
 import '../../domain/attendance_repository.dart';
 import 'mark_attendance_state.dart';
 
 class MarkAttendanceCubit extends Cubit<MarkAttendanceState> {
-  MarkAttendanceCubit(this._repository, {DateTime Function()? clock})
+  MarkAttendanceCubit(this._repository, this._whatsApp, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now,
         super(MarkAttendanceState(date: _dateOnly((clock ?? DateTime.now)())));
 
   final AttendanceRepository _repository;
+  final WhatsAppService _whatsApp;
   final DateTime Function() _clock;
 
   /// Only the newest sheet may update the screen.
@@ -59,6 +62,21 @@ class MarkAttendanceCubit extends Cubit<MarkAttendanceState> {
 
   void markAll(String status) {
     emit(state.copyWith(entries: [for (final e in state.entries) e.withStatus(status)]));
+  }
+
+  /// Opens WhatsApp to tell the parent that the student was absent on this date.
+  Future<void> sendAbsent(int studentId) async {
+    final entry = state.entries.where((e) => e.studentId == studentId).firstOrNull;
+    if (entry == null) return;
+    final result = await _whatsApp.sendToParent(
+      studentId: studentId,
+      body: WhatsAppMessages.absent(studentName: entry.name, date: state.date),
+    );
+    emit(state.copyWith(
+      feedback: result.userMessage,
+      feedbackIsError: result.isError,
+      feedbackId: state.feedbackId + 1,
+    ));
   }
 
   Future<void> save() async {

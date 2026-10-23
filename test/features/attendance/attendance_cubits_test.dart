@@ -1,4 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
+import '../../support/fake_whatsapp.dart';
+import 'package:haqani/core/services/whatsapp_service.dart';
 import 'package:haqani/core/constants/app_strings.dart';
 import 'package:haqani/features/attendance/domain/attendance_models.dart';
 import 'package:haqani/features/attendance/domain/attendance_repository.dart';
@@ -68,10 +70,15 @@ void main() {
   final now = DateTime(2026, 5, 12, 9, 30);
   late _FakeRepository repo;
 
-  setUp(() => repo = _FakeRepository());
+  late FakeWhatsAppService whatsApp;
+
+  setUp(() {
+    repo = _FakeRepository();
+    whatsApp = FakeWhatsAppService();
+  });
 
   group('MarkAttendanceCubit', () {
-    MarkAttendanceCubit make() => MarkAttendanceCubit(repo, clock: () => now);
+    MarkAttendanceCubit make() => MarkAttendanceCubit(repo, whatsApp, clock: () => now);
 
     test('load picks the first class, starts today and defaults everyone to present', () async {
       final cubit = make();
@@ -211,7 +218,7 @@ void main() {
         AttendanceEntry(studentId: 1, name: 'Ali', admissionNo: '1', status: 'present'),
         AttendanceEntry(studentId: 2, name: 'Sara', admissionNo: '2'),
       ];
-      final cubit = DailyReportCubit(repo, clock: () => now);
+      final cubit = DailyReportCubit(repo, whatsApp, clock: () => now);
 
       await cubit.load();
 
@@ -222,7 +229,7 @@ void main() {
     });
 
     test('changes reload; future date is held at today; failure is friendly', () async {
-      final cubit = DailyReportCubit(repo, clock: () => now);
+      final cubit = DailyReportCubit(repo, whatsApp, clock: () => now);
       await cubit.load();
 
       await cubit.selectClass(2);
@@ -243,7 +250,7 @@ void main() {
 
   group('MonthlyReportCubit', () {
     test('starts on the current month and loads rows', () async {
-      final cubit = MonthlyReportCubit(repo, clock: () => now);
+      final cubit = MonthlyReportCubit(repo, whatsApp, clock: () => now);
 
       await cubit.load();
 
@@ -254,7 +261,7 @@ void main() {
     });
 
     test('moves back across a year, and never goes past the current month', () async {
-      final cubit = MonthlyReportCubit(repo, clock: () => DateTime(2026, 1, 15));
+      final cubit = MonthlyReportCubit(repo, whatsApp, clock: () => DateTime(2026, 1, 15));
       await cubit.load();
 
       await cubit.moveMonth(-1);
@@ -271,7 +278,7 @@ void main() {
 
     test('failure shows a friendly message', () async {
       repo.fail = true;
-      final cubit = MonthlyReportCubit(repo, clock: () => now);
+      final cubit = MonthlyReportCubit(repo, whatsApp, clock: () => now);
 
       await cubit.load();
 
@@ -289,5 +296,65 @@ void main() {
     );
     expect(row.percent, 67);
     expect(row.markedDays, 3);
+  });
+
+  group('WhatsApp', () {
+    test('mark attendance: tells the parent about an absence on the chosen date', () async {
+      final cubit = MarkAttendanceCubit(repo, whatsApp, clock: () => now);
+      await cubit.load();
+
+      await cubit.sendAbsent(2);
+
+      expect(whatsApp.sent.single.studentId, 2);
+      expect(whatsApp.sent.single.body, 'Sara was absent from school on 12 May 2026. Please let us know the reason.');
+      expect(cubit.state.feedback, contains('WhatsApp opened'));
+
+      await cubit.sendAbsent(99);
+      expect(whatsApp.sent, hasLength(1), reason: 'unknown student does nothing');
+      await cubit.close();
+    });
+
+    test('mark attendance: a student without a number shows the reason', () async {
+      whatsApp.result = WhatsAppResult.noNumber;
+      final cubit = MarkAttendanceCubit(repo, whatsApp, clock: () => now);
+      await cubit.load();
+
+      await cubit.sendAbsent(1);
+
+      expect(cubit.state.feedbackIsError, isTrue);
+      expect(cubit.state.feedback, contains('No valid phone number'));
+      await cubit.close();
+    });
+
+    test('daily report: absent message', () async {
+      final cubit = DailyReportCubit(repo, whatsApp, clock: () => now);
+      await cubit.load();
+
+      await cubit.sendAbsent(1);
+
+      expect(whatsApp.sent.single.body, contains('Ali was absent'));
+      expect(cubit.state.feedback, contains('WhatsApp opened'));
+      await cubit.close();
+    });
+
+    test('monthly report: month summary', () async {
+      final cubit = MonthlyReportCubit(repo, whatsApp, clock: () => now);
+      await cubit.load();
+
+      await cubit.sendMonth(const MonthlyAttendanceRow(
+        studentId: 1,
+        name: 'Ali',
+        admissionNo: '1',
+        days: {1: 'present', 2: 'present', 3: 'absent', 4: 'leave'},
+      ));
+
+      expect(whatsApp.sent.single.studentId, 1);
+      expect(whatsApp.sent.single.body, contains('Attendance of Ali for May 2026'));
+      expect(whatsApp.sent.single.body, contains('Present: 2'));
+      expect(whatsApp.sent.single.body, contains('Absent: 1'));
+      expect(whatsApp.sent.single.body, contains('Leave: 1'));
+      expect(whatsApp.sent.single.body, contains('Attendance: 50%'));
+      await cubit.close();
+    });
   });
 }

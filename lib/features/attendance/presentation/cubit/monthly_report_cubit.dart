@@ -1,16 +1,20 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/whatsapp_service.dart';
+import '../../../../core/utils/whatsapp_messages.dart';
+import '../../domain/attendance_models.dart';
 import '../../domain/attendance_repository.dart';
 import 'monthly_report_state.dart';
 
 /// Monthly report: present, absent, leave and percent for every student.
 class MonthlyReportCubit extends Cubit<MonthlyReportState> {
-  MonthlyReportCubit(this._repository, {DateTime Function()? clock})
+  MonthlyReportCubit(this._repository, this._whatsApp, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now,
         super(MonthlyReportState(month: _firstOfMonth((clock ?? DateTime.now)())));
 
   final AttendanceRepository _repository;
+  final WhatsAppService _whatsApp;
   final DateTime Function() _clock;
   int _request = 0;
 
@@ -47,6 +51,26 @@ class MonthlyReportCubit extends Cubit<MonthlyReportState> {
     if (next.isAfter(_firstOfMonth(_clock()))) return Future.value();
     emit(state.copyWith(month: next));
     return _loadReport();
+  }
+
+  /// Opens WhatsApp with this month's attendance of the student for the parent.
+  Future<void> sendMonth(MonthlyAttendanceRow row) async {
+    final result = await _whatsApp.sendToParent(
+      studentId: row.studentId,
+      body: WhatsAppMessages.attendanceMonth(
+        studentName: row.name,
+        month: state.month,
+        present: row.present,
+        absent: row.absent,
+        leave: row.leave,
+        percent: row.percent,
+      ),
+    );
+    emit(state.copyWith(
+      feedback: result.userMessage,
+      feedbackIsError: result.isError,
+      feedbackId: state.feedbackId + 1,
+    ));
   }
 
   Future<void> _loadReport() async {

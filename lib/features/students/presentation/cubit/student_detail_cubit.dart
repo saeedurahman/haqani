@@ -1,16 +1,19 @@
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/constants/app_strings.dart';
+import '../../../../core/services/whatsapp_service.dart';
+import '../../../../core/utils/whatsapp_messages.dart';
 import '../../domain/students_exception.dart';
 import '../../domain/students_repository.dart';
 import 'student_detail_state.dart';
 
 class StudentDetailCubit extends Cubit<StudentDetailState> {
-  StudentDetailCubit(this._repository, {DateTime Function()? clock})
+  StudentDetailCubit(this._repository, this._whatsApp, {DateTime Function()? clock})
       : _clock = clock ?? DateTime.now,
         super(const StudentDetailState());
 
   final StudentsRepository _repository;
+  final WhatsAppService _whatsApp;
   final DateTime Function() _clock;
 
   Future<void> load(int studentId) async {
@@ -54,6 +57,31 @@ class StudentDetailCubit extends Cubit<StudentDetailState> {
       () => _repository.reactivate(student.id),
       '${student.name} is active again.',
     );
+  }
+
+  /// Opens WhatsApp with a short message about the student for the parent.
+  Future<void> sendWhatsApp() async {
+    final student = state.student;
+    if (student == null) return;
+    final attendance = state.history.attendance;
+    final fees = [...state.history.fees]..sort((a, b) => b.forMonth.compareTo(a.forMonth));
+    final result = await _whatsApp.sendToParent(
+      studentId: student.id,
+      body: WhatsAppMessages.studentUpdate(
+        studentName: student.name,
+        classLabel: student.classLabel,
+        attendancePercent: attendance.isEmpty
+            ? null
+            : (state.history.countAttendance('present') * 100 / attendance.length).round(),
+        // The newest voucher already includes older unpaid amounts.
+        feeDue: fees.isEmpty ? null : fees.first.due,
+      ),
+    );
+    emit(state.copyWith(
+      feedback: result.userMessage,
+      feedbackIsError: result.isError,
+      feedbackId: state.feedbackId + 1,
+    ));
   }
 
   Future<void> addDocument(String title, String sourcePath) => _run(

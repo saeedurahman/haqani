@@ -13,6 +13,9 @@ class ResultCardState extends Equatable {
     this.history = const [],
     this.pdfBytes,
     this.errorMessage,
+    this.feedback,
+    this.feedbackIsError = false,
+    this.feedbackId = 0,
   });
 
   final ResultCardStatus status;
@@ -25,12 +28,20 @@ class ResultCardState extends Equatable {
   final Uint8List? pdfBytes;
   final String? errorMessage;
 
+  /// One-time message after Send on WhatsApp. [feedbackId] changes every time.
+  final String? feedback;
+  final bool feedbackIsError;
+  final int feedbackId;
+
   ResultCardState copyWith({
     ResultCardStatus? status,
     List<ResultCard>? cards,
     List<ExamSummary>? history,
     Uint8List? pdfBytes,
     String? errorMessage,
+    String? feedback,
+    bool? feedbackIsError,
+    int? feedbackId,
   }) {
     return ResultCardState(
       status: status ?? this.status,
@@ -38,9 +49,13 @@ class ResultCardState extends Equatable {
       history: history ?? this.history,
       pdfBytes: pdfBytes ?? this.pdfBytes,
       errorMessage: errorMessage,
+      feedback: feedback,
+      feedbackIsError: feedbackIsError ?? this.feedbackIsError,
+      feedbackId: feedbackId ?? this.feedbackId,
     );
   }
 
   @override
-  List<Object?> get props => [status, cards, history, pdfBytes, errorMessage];
+  List<Object?> get props =>
+      [status, cards, history, pdfBytes, errorMessage, feedback, feedbackIsError, feedbackId];
 }
