@@ -12,6 +12,14 @@ import '../../features/attendance/domain/attendance_repository.dart';
 import '../../features/attendance/presentation/cubit/daily_report_cubit.dart';
 import '../../features/attendance/presentation/cubit/mark_attendance_cubit.dart';
 import '../../features/attendance/presentation/cubit/monthly_report_cubit.dart';
+import '../../features/fees/data/fee_receipt_pdf.dart';
+import '../../features/fees/data/fees_repository_impl.dart';
+import '../../features/fees/domain/fees_repository.dart';
+import '../../features/fees/domain/receipt_pdf_service.dart';
+import '../../features/fees/presentation/cubit/collect_fee_cubit.dart';
+import '../../features/fees/presentation/cubit/fee_structure_cubit.dart';
+import '../../features/fees/presentation/cubit/receipt_cubit.dart';
+import '../../features/fees/presentation/cubit/vouchers_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -84,5 +92,22 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<MonthlyReportCubit>(
     () => MonthlyReportCubit(getIt<AttendanceRepository>()),
+  );
+
+  getIt.registerLazySingleton<ReceiptPdfService>(() => FeeReceiptPdf());
+  getIt.registerLazySingleton<FeesRepository>(
+    () => FeesRepositoryImpl(getIt<AppDatabase>()),
+  );
+  getIt.registerFactory<FeeStructureCubit>(
+    () => FeeStructureCubit(getIt<FeesRepository>()),
+  );
+  getIt.registerFactory<VouchersCubit>(
+    () => VouchersCubit(getIt<FeesRepository>()),
+  );
+  getIt.registerFactory<CollectFeeCubit>(
+    () => CollectFeeCubit(getIt<FeesRepository>()),
+  );
+  getIt.registerFactory<ReceiptCubit>(
+    () => ReceiptCubit(getIt<FeesRepository>(), getIt<ReceiptPdfService>()),
   );
 }

@@ -5,6 +5,7 @@ import '../../../admissions/presentation/pages/admissions_flow.dart';
 import '../../../attendance/presentation/pages/attendance_page.dart';
 import '../../../classes/presentation/pages/classes_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import '../../../fees/presentation/pages/fees_flow.dart';
 import '../../../students/presentation/pages/students_flow.dart';
 import '../cubit/app_section.dart';
 import '../cubit/navigation_cubit.dart';
@@ -42,6 +43,8 @@ class AppShell extends StatelessWidget {
     switch (section) {
       case AppSection.dashboard:
         return const DashboardPage();
+      case AppSection.fees:
+        return const FeesFlow();
       case AppSection.attendance:
         return const AttendancePage();
       case AppSection.admissions:

@@ -16,7 +16,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 3 | Students | [x] | claude/focused-wright-p1vttv |
 | 4 | Admissions + Leaving Certificate | [x] | claude/focused-wright-p1vttv |
 | 5 | Attendance | [x] | claude/focused-wright-p1vttv |
-| 6 | Fees | [ ] | |
+| 6 | Fees | [x] | claude/focused-wright-p1vttv |
 | 7 | Staff | [ ] | |
 | 8 | Exams & Results | [ ] | |
 | 9 | Reports | [ ] | |
@@ -69,6 +69,16 @@ None.
   - Only active students are listed. Dashboard "Present today" now shows real numbers.
   - `AppDateField` got `clearable`. Fixed in tests: attendance buttons no longer have a fixed width.
   - 44 new tests (repository, 3 cubits, page flow). Total 130, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 6 Fees:
+  - `FeesDao` + `FeesRepository` (interface/impl) + 4 Cubits (fee structure, vouchers, collect fee, receipt). Uses the existing `fee_structure` and `fee_vouchers` tables (no schema change).
+  - **Fee Structure tab:** monthly, annual and admission fee per class, own Save button per class.
+  - **Vouchers tab:** class/section + month (up to next month). "Generate Vouchers" makes one unpaid voucher per active student: monthly fee, optional annual fee (checkbox), admission fee automatically in the student's admission month, and previous dues. Students who already have that month (or a later one) are skipped. Totals (billed/collected/pending), All/Unpaid/Partial/Paid filter with counts, search, and Receipt button to print again.
+  - **Previous dues carry forward:** unpaid balance of the newest earlier voucher is added to the new voucher. The older voucher shows "Carried forward", so money is never counted twice.
+  - **Collect Fee tab:** search by name, father name or ID. Brothers and sisters (same father CNIC, or same father name + phone) show together; tick who is paying, edit misc fee, discount and "Receive now" per student (partial payment allowed, cannot pass the balance). One receipt number for all (separate voucher rows). Students with nothing due have a "Create this month's voucher" button. Fee history of the student at the bottom.
+  - **Receipt (PDF, A5, print/save):** receipt no, date, registration no, student, class/section, month, monthly, annual, admission, misc, previous dues, discount, total, received now, paid so far, balance. Several students on one receipt. Urdu names work.
+  - Receipt numbers are 1, 2, 3... and all steps run in one database transaction.
+  - New shared `MonthSwitcher` and `MoneyField`. Dashboard "Fees collected this month" now shows real numbers.
+  - 48 new tests (repository, 4 cubits, receipt PDF, page flow). Total 178, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -80,6 +90,9 @@ None.
 - Admissions: issuing a certificate does not mark the student as left. Use Mark as Left on the student page.
 - Attendance: the per-student note column exists in the database and is kept when saving, but there is no screen to type a note yet.
 - Attendance: PDF/CSV export of these reports comes with the Reports module.
+- Fees: the database keeps one receipt number and one date per voucher (no separate payments table). If a voucher is paid in two parts, the second receipt replaces the first receipt number on that voucher, and the dashboard counts the whole paid amount in the month of the last payment. The old receipt can no longer be printed again. Adding a payments table would fix this; ask before changing the schema.
+- Fees: the receipt screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
+- Fees: paid/unpaid lists and defaulters for all classes come with the Reports module; here they are per class and month.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -135,6 +148,18 @@ None.
 9. Monthly Report: check counts and %, use the arrows for another month, click a student to see the day grid.
 10. Dashboard: "Present today" matches today's saved attendance.
 11. Mark a student as Left (Students module): they disappear from the attendance lists.
+
+### Module 6
+1. Fees > Fee Structure: set monthly, annual and admission fee for each class and press Save. "Fee is set" shows.
+2. Fees > Vouchers: pick the class and month, press Generate Vouchers. Try with and without the annual fee. Press it again: nothing new, no duplicates.
+3. Generate a class without a fee set: clear message to set the fee first.
+4. Collect Fee: search a student. Pay part of the fee (for example Rs 500 of 1500): status becomes Partial, receipt opens. Pay the rest: Paid.
+5. Receipt: check all fields, then Print to "Microsoft Print to PDF" and Save. Also open an old receipt from the Vouchers tab and from fee history.
+6. Two brothers/sisters (same father CNIC in both profiles): search one, both show. Tick both, receive: ONE receipt with both students.
+7. Generate next month's vouchers while some fee is unpaid: "previous dues" is added, and the old month shows "Carried forward".
+8. Try Misc fee and Discount. Try typing more than the balance in "Receive now": it stops at the balance.
+9. A student with nothing due shows "Create this month's voucher".
+10. Student detail > Fees tab shows the same vouchers. Dashboard "Fees collected this month" matches what you received.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
