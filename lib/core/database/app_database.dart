@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:path/path.dart' as p;
 import 'package:path_provider/path_provider.dart';
 
+import 'daos/classes_dao.dart';
 import 'tables/fee_exam_tables.dart';
 import 'tables/school_tables.dart';
 import 'tables/student_tables.dart';
@@ -26,6 +27,7 @@ part 'app_database.g.dart';
     Subjects,
     Results,
   ],
+  daos: [ClassesDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
@@ -40,16 +42,18 @@ class AppDatabase extends _$AppDatabase {
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
-        beforeOpen: (details) async {
-          await customStatement('PRAGMA foreign_keys = ON');
-        },
-      );
+    beforeOpen: (details) async {
+      await customStatement('PRAGMA foreign_keys = ON');
+    },
+  );
 }
 
 LazyDatabase _openConnection() {
   return LazyDatabase(() async {
     final dir = await getApplicationDocumentsDirectory();
-    final file = File(p.join(dir.path, 'RozatulAtfal', AppDatabase.databaseFileName));
+    final file = File(
+      p.join(dir.path, 'RozatulAtfal', AppDatabase.databaseFileName),
+    );
     await file.parent.create(recursive: true);
     return NativeDatabase.createInBackground(file);
   });

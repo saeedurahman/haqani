@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
+import '../../../classes/presentation/pages/classes_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
 import '../cubit/app_section.dart';
 import '../cubit/navigation_cubit.dart';
@@ -35,7 +36,13 @@ class AppShell extends StatelessWidget {
   }
 
   Widget _pageFor(AppSection section) {
-    if (section == AppSection.dashboard) return const DashboardPage();
-    return ComingSoonPage(section: section);
+    switch (section) {
+      case AppSection.dashboard:
+        return const DashboardPage();
+      case AppSection.classes:
+        return const ClassesPage();
+      default:
+        return ComingSoonPage(section: section);
+    }
   }
 }
