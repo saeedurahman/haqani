@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../classes/presentation/pages/classes_page.dart';
 import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import '../../../students/presentation/pages/students_flow.dart';
 import '../cubit/app_section.dart';
 import '../cubit/navigation_cubit.dart';
 import '../widgets/app_sidebar.dart';
@@ -39,6 +40,8 @@ class AppShell extends StatelessWidget {
     switch (section) {
       case AppSection.dashboard:
         return const DashboardPage();
+      case AppSection.students:
+        return const StudentsFlow();
       case AppSection.classes:
         return const ClassesPage();
       default:

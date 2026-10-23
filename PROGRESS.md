@@ -13,7 +13,7 @@ Claude: update this file after every task. Keep it short and accurate.
 |---|--------|--------|-----------|
 | 1 | Base setup (structure, theme, DI, DB, shell, dashboard) | [x] | claude/focused-wright-p1vttv |
 | 2 | Classes & Sections | [x] | claude/focused-wright-p1vttv |
-| 3 | Students | [ ] | |
+| 3 | Students | [x] | claude/focused-wright-p1vttv |
 | 4 | Admissions + Leaving Certificate | [ ] | |
 | 5 | Attendance | [ ] | |
 | 6 | Fees | [ ] | |
@@ -44,11 +44,23 @@ None.
   - List shows each class with section count, active student count, and per-section teacher and student count. Search by class or section name; empty, loading, error states; confirmation before delete.
   - "Coming soon" page for Classes replaced by the real page. New shared `AppFormDialog` widget.
   - 25 new tests (repository, cubit, page). Total 43, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 3 Students:
+  - `StudentsDao` + `StudentsRepository` (interface/impl) + 3 Cubits (list, form, detail), all with status/copyWith states.
+  - Students list: search by name, father name, admission no or registration no (done in SQL, safe for 1000+ students), filter by class, "Show students who left" switch, empty/loading/error states.
+  - Add/Edit form with all section 5 fields: validation for required fields, phone (03xx-xxxxxxx) and CNIC; admission no is pre-filled with the next free number and must be unique; class and section dropdowns.
+  - Student detail page with Info, Attendance, Fees and Results tabs. The history tabs read real records from the database (empty until those modules save data).
+  - Documents: attach any file (copied to `Documents/RozatulAtfal/documents/<studentId>/`), open it, remove it.
+  - Soft delete: "Mark as Left" (asks first, keeps all records) and "Make Active" to undo.
+  - Students section has its own navigator, so the side menu stays visible on detail and form pages.
+  - Fixed a ConfirmDialog button overflow (buttons now wrap).
+  - 31 new tests (repository, 3 cubits, pages). Total 74, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
 - `school_name` and `last_backup_time` settings have no screen yet (Settings and Backup modules).
 - Classes page: reorder is hidden while a search is active. Teachers list stays empty until the Staff module adds staff.
+- Students: Admissions (module 4) will add the automatic admission number flow and certificate; the form here only suggests the next number.
+- Students: opening attached files uses the Windows default app; untested on Windows.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -68,6 +80,18 @@ None.
 6. Edit a section. Class teacher list will show staff only after the Staff module is built.
 7. Type in the search box: it finds by class name or section name.
 8. After the Students module: a class or section with students must not be deletable, and student counts must show.
+
+### Module 3
+1. Open Students: "No students yet" and Add Student button.
+2. Add a student with only Admission No and Name. Then add one with every field, including Urdu in the name and father name (text should look clean, not boxes).
+3. Try bad phone (123), bad CNIC (12345) and a repeated admission number: clear red messages.
+4. Search by name, father name and ID. Filter by class. Switch on "Show students who left".
+5. Open a student: check Info, Attendance, Fees, Results tabs (empty states for now).
+6. Edit a student and save. Check the changes show on the detail page and list.
+7. Attach a PDF or image, open it (Windows should open it), remove it.
+8. Mark as Left: confirm dialog, student disappears from the main list, appears with "Show students who left". Make Active brings back.
+9. Go to Classes: student counts match, and a class with students cannot be deleted.
+10. Resize the window to check the form and detail page.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
