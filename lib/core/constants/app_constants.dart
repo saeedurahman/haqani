@@ -7,5 +7,6 @@ class AppConstants {
   static const keepLocalBackups = 10;
 
   static const settingSchoolName = 'school_name';
+  static const settingSchoolAddress = 'school_address';
   static const settingLastBackup = 'last_backup_time';
 }

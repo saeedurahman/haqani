@@ -56,6 +56,33 @@ class Student extends Equatable {
   final String? className;
   final String? sectionName;
 
+  /// Same student with another admission number.
+  Student withAdmissionNo(String value) => Student(
+        id: id,
+        admissionNo: value,
+        name: name,
+        registrationNo: registrationNo,
+        fatherName: fatherName,
+        fatherCnic: fatherCnic,
+        dob: dob,
+        gender: gender,
+        phone: phone,
+        whatsappNo: whatsappNo,
+        address: address,
+        fatherProfession: fatherProfession,
+        fatherEducation: fatherEducation,
+        previousSchool: previousSchool,
+        previousClass: previousClass,
+        classId: classId,
+        sectionId: sectionId,
+        admissionDate: admissionDate,
+        status: status,
+        leavingDate: leavingDate,
+        notes: notes,
+        className: className,
+        sectionName: sectionName,
+      );
+
   bool get isActive => status == 'active';
 
   /// Example: "Class 1 - A".

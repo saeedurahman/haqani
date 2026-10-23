@@ -18,6 +18,8 @@ class AppTextField extends StatelessWidget {
     this.maxLines = 1,
     this.textDirection,
     this.autofocus = false,
+    this.readOnly = false,
+    this.helper,
   });
 
   final String label;
@@ -31,6 +33,8 @@ class AppTextField extends StatelessWidget {
   final int maxLines;
   final TextDirection? textDirection;
   final bool autofocus;
+  final bool readOnly;
+  final String? helper;
 
   @override
   Widget build(BuildContext context) {
@@ -54,6 +58,7 @@ class AppTextField extends StatelessWidget {
           inputFormatters: inputFormatters,
           maxLines: maxLines,
           autofocus: autofocus,
+          readOnly: readOnly,
           textDirection: textDirection,
           style: const TextStyle(
             fontSize: 15,
@@ -62,6 +67,9 @@ class AppTextField extends StatelessWidget {
           ),
           decoration: InputDecoration(
             hintText: hint,
+            helperText: helper,
+            filled: readOnly ? true : null,
+            fillColor: readOnly ? AppColors.background : null,
             hintStyle: const TextStyle(color: AppColors.textMuted),
             prefixIcon: icon == null
                 ? null

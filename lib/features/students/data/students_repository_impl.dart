@@ -8,6 +8,7 @@ import '../../../core/database/app_database.dart' hide Student;
 import '../../../core/database/daos/students_dao.dart';
 import '../../../core/utils/app_date_utils.dart';
 import '../domain/student.dart';
+import 'student_mapper.dart';
 import '../domain/student_extras.dart';
 import '../domain/student_history.dart';
 import '../domain/students_exception.dart';
@@ -34,13 +35,13 @@ class StudentsRepositoryImpl implements StudentsRepository {
     bool includeLeft = false,
   }) async {
     final rows = await _dao.search(query: query, classId: classId, includeLeft: includeLeft);
-    return [for (final r in rows) _toStudent(r)];
+    return [for (final r in rows) studentFromRow(r)];
   }
 
   @override
   Future<Student?> getStudent(int id) async {
     final row = await _dao.byId(id);
-    return row == null ? null : _toStudent(row);
+    return row == null ? null : studentFromRow(row);
   }
 
   @override
@@ -196,32 +197,4 @@ class StudentsRepositoryImpl implements StudentsRepository {
 
   String? _iso(DateTime? date) => date == null ? null : AppDateUtils.toIso(date);
 
-  Student _toStudent(StudentRow row) {
-    final s = row.student;
-    return Student(
-      id: s.id,
-      admissionNo: s.admissionNo,
-      registrationNo: s.registrationNo,
-      name: s.name,
-      fatherName: s.fatherName,
-      fatherCnic: s.fatherCnic,
-      dob: AppDateUtils.tryParseIso(s.dob),
-      gender: s.gender,
-      phone: s.phone,
-      whatsappNo: s.whatsappNo,
-      address: s.address,
-      fatherProfession: s.fatherProfession,
-      fatherEducation: s.fatherEducation,
-      previousSchool: s.previousSchool,
-      previousClass: s.previousClass,
-      classId: s.classId,
-      sectionId: s.sectionId,
-      admissionDate: AppDateUtils.tryParseIso(s.admissionDate),
-      status: s.status,
-      leavingDate: AppDateUtils.tryParseIso(s.leavingDate),
-      notes: s.notes,
-      className: row.className,
-      sectionName: row.sectionName,
-    );
-  }
 }

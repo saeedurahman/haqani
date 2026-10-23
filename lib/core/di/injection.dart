@@ -1,5 +1,12 @@
 import 'package:get_it/get_it.dart';
 
+import '../../features/admissions/data/admissions_repository_impl.dart';
+import '../../features/admissions/data/leaving_certificate_pdf.dart';
+import '../../features/admissions/domain/admissions_repository.dart';
+import '../../features/admissions/domain/certificate_pdf_service.dart';
+import '../../features/admissions/presentation/cubit/admission_form_cubit.dart';
+import '../../features/admissions/presentation/cubit/admissions_cubit.dart';
+import '../../features/admissions/presentation/cubit/certificate_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -45,5 +52,19 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<StudentDetailCubit>(
     () => StudentDetailCubit(getIt<StudentsRepository>()),
+  );
+
+  getIt.registerLazySingleton<CertificatePdfService>(() => LeavingCertificatePdf());
+  getIt.registerLazySingleton<AdmissionsRepository>(
+    () => AdmissionsRepositoryImpl(getIt<AppDatabase>(), getIt<StudentsRepository>()),
+  );
+  getIt.registerFactory<AdmissionsCubit>(
+    () => AdmissionsCubit(getIt<AdmissionsRepository>()),
+  );
+  getIt.registerFactory<AdmissionFormCubit>(
+    () => AdmissionFormCubit(getIt<AdmissionsRepository>()),
+  );
+  getIt.registerFactory<CertificateCubit>(
+    () => CertificateCubit(getIt<AdmissionsRepository>(), getIt<CertificatePdfService>()),
   );
 }

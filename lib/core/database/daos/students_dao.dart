@@ -77,6 +77,34 @@ class StudentsDao extends DatabaseAccessor<AppDatabase> with _$StudentsDaoMixin 
     return [for (final r in await statement.get()) _toRow(r)];
   }
 
+  /// Admission register: newest admission first, active and left students.
+  /// [from] and [to] are inclusive `yyyy-MM-dd` dates.
+  Future<List<StudentRow>> admissions({
+    String query = '',
+    String? from,
+    String? to,
+  }) async {
+    final q = query.trim();
+    final statement = _joined()
+      ..orderBy([
+        OrderingTerm.desc(students.admissionDate),
+        OrderingTerm.desc(students.id),
+      ]);
+
+    Expression<bool> where = const Constant(true);
+    if (from != null) where = where & students.admissionDate.isBiggerOrEqualValue(from);
+    if (to != null) where = where & students.admissionDate.isSmallerOrEqualValue(to);
+    if (q.isNotEmpty) {
+      final pattern = '%$q%';
+      where = where &
+          (students.name.like(pattern) |
+              students.fatherName.like(pattern) |
+              students.admissionNo.like(pattern));
+    }
+    statement.where(where);
+    return [for (final r in await statement.get()) _toRow(r)];
+  }
+
   Future<StudentRow?> byId(int id) async {
     final statement = _joined()..where(students.id.equals(id));
     final rows = await statement.get();

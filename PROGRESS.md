@@ -14,7 +14,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 1 | Base setup (structure, theme, DI, DB, shell, dashboard) | [x] | claude/focused-wright-p1vttv |
 | 2 | Classes & Sections | [x] | claude/focused-wright-p1vttv |
 | 3 | Students | [x] | claude/focused-wright-p1vttv |
-| 4 | Admissions + Leaving Certificate | [ ] | |
+| 4 | Admissions + Leaving Certificate | [x] | claude/focused-wright-p1vttv |
 | 5 | Attendance | [ ] | |
 | 6 | Fees | [ ] | |
 | 7 | Staff | [ ] | |
@@ -54,6 +54,13 @@ None.
   - Students section has its own navigator, so the side menu stays visible on detail and form pages.
   - Fixed a ConfirmDialog button overflow (buttons now wrap).
   - 31 new tests (repository, 3 cubits, pages). Total 74, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 4 Admissions + Leaving Certificate:
+  - Admission register page: newest first, search by name/father/number, "admitted from/to" date range, empty/loading/error states.
+  - New Admission form (same fields as the student form): admission number is automatic and read-only. The number is chosen inside the same database transaction as the save, so two admissions can never get the same number. Saves the student as active with class and section.
+  - School Leaving Certificate: opens from each row. Values are filled from school records (class, admission date, attended from/to, dues cleared from fee records, attendance %, last exam, next class as "promoted to") and every value can be changed. DOB shown in figures and in words. Live PDF preview with Print and Save/Share (printing package). Urdu names show correctly in the PDF (checked by rendering a sample).
+  - School name and address come from `app_settings` (keys `school_name`, `school_address`); defaults are used until the Settings module adds a screen.
+  - Moved student-to-domain mapping into `students/data/student_mapper.dart` (shared). `PersonalSection` got an `autoAdmissionNo` option; `AppTextField` got `readOnly` and `helper`; `Student.withAdmissionNo`; `NumberWords` util.
+  - 30 new tests (repository, 3 cubits, PDF builder, page flow, number words). Total 104, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -61,6 +68,8 @@ None.
 - Classes page: reorder is hidden while a search is active. Teachers list stays empty until the Staff module adds staff.
 - Students: Admissions (module 4) will add the automatic admission number flow and certificate; the form here only suggests the next number.
 - Students: opening attached files uses the Windows default app; untested on Windows.
+- Admissions: the certificate page (PDF preview, print, save) could not be run in the cloud (needs Windows plugins). Only the PDF itself was checked.
+- Admissions: issuing a certificate does not mark the student as left. Use Mark as Left on the student page.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -92,6 +101,17 @@ None.
 8. Mark as Left: confirm dialog, student disappears from the main list, appears with "Show students who left". Make Active brings back.
 9. Go to Classes: student counts match, and a class with students cannot be deleted.
 10. Resize the window to check the form and detail page.
+
+### Module 4
+1. Open Admissions: "No admissions yet". Click New Admission.
+2. Admission No is grey and cannot be typed. Save with an empty name: red message. Fill the name and class, click Admit Student.
+3. Message "Admission done. Admission No N." shows and the student is at the top of the list. Check the student also appears in Students and counts in Classes.
+4. Admit a second student: number goes up by one. Delete nothing, then check no number is repeated.
+5. Use the search box and the "Admitted from / to" dates. Clear a date with the x button.
+6. Click Leaving Certificate on a student. Check the form is pre-filled, the PDF preview shows on the right and changes as you type.
+7. Check DOB in words (example: Five March Two Thousand Eighteen), Dues cleared Yes/No, and an Urdu name.
+8. Click Print in the preview. Print to "Microsoft Print to PDF" and open the file. Also try the save/share button.
+9. Check the certificate fits on one A4 page.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

@@ -12,10 +12,18 @@ import 'student_form_controller.dart';
 const _gridWidth = 320.0;
 
 class PersonalSection extends StatelessWidget {
-  const PersonalSection({super.key, required this.form, required this.onChanged});
+  const PersonalSection({
+    super.key,
+    required this.form,
+    required this.onChanged,
+    this.autoAdmissionNo = false,
+  });
 
   final StudentFormController form;
   final VoidCallback onChanged;
+
+  /// Admissions: the number is given automatically and cannot be typed.
+  final bool autoAdmissionNo;
 
   @override
   Widget build(BuildContext context) {
@@ -27,9 +35,13 @@ class PersonalSection extends StatelessWidget {
         minItemWidth: _gridWidth,
         children: [
           AppTextField(
-            label: 'Admission No *',
+            label: autoAdmissionNo ? 'Admission No' : 'Admission No *',
             controller: form.admissionNo,
-            validator: (v) => Validators.required(v, label: 'Admission No'),
+            readOnly: autoAdmissionNo,
+            helper: autoAdmissionNo ? 'Given automatically when you save' : null,
+            validator: autoAdmissionNo
+                ? null
+                : (v) => Validators.required(v, label: 'Admission No'),
           ),
           AppTextField(label: 'Registration No', controller: form.registrationNo),
           AppTextField(
