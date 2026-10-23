@@ -136,4 +136,11 @@ class FeesDao extends DatabaseAccessor<AppDatabase> with _$FeesDaoMixin {
       for (final r in await query.get()) r.read(feeVouchers.studentId)!: r.read(latest)!,
     };
   }
+
+  /// Every voucher that still has a balance.
+  Future<List<FeeVoucher>> vouchersWithBalance() {
+    return (select(feeVouchers)
+          ..where((t) => (t.total - t.paidAmount).isBiggerThanValue(0)))
+        .get();
+  }
 }

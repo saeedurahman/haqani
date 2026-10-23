@@ -126,6 +126,9 @@ class _FakeRepository implements FeesRepository {
   }
 
   @override
+  Future<List<Defaulter>> getDefaulters({int? classId}) async => const [];
+
+  @override
   Future<FeeReceipt> collect(List<PaymentRequest> payments, DateTime date) async {
     _check();
     lastPayments = payments;

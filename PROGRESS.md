@@ -19,7 +19,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 6 | Fees | [x] | claude/focused-wright-p1vttv |
 | 7 | Staff | [x] | claude/focused-wright-p1vttv |
 | 8 | Exams & Results | [x] | claude/focused-wright-p1vttv |
-| 9 | Reports | [ ] | |
+| 9 | Reports | [x] | claude/focused-wright-p1vttv |
 | 10 | WhatsApp share | [ ] | |
 | 11 | Backup & Restore (local + Google Drive) | [ ] | |
 | 12 | Settings & Polish | [ ] | |
@@ -96,6 +96,18 @@ None.
   - **Result card (PDF, A4):** school, exam, student, class/section, subject table with grades, total, percentage, grade, position ("1st of 24"), result, signature lines. Print one card, or all cards of the class in one PDF. Urdu names work. A "Previous results" list shows the student's other exams.
   - Marks are stored in the existing `results` table (no schema change). Student detail > Results tab shows them too.
   - 51 new tests (calculator, repository, 4 cubits, PDF, page flow). Total 248, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 9 Reports:
+  - Reports hub with 7 report cards. Every report is built as a `ReportDocument` (title, numbers, tables) by `ReportsRepository`, which uses the other modules' repositories (no new tables). One `ReportsCubit` per report holds the choices.
+  - **Students:** total, boys, girls; class-wise and section-wise tables with totals.
+  - **New Admissions:** between two dates (starts with this month), includes students who later left.
+  - **Attendance:** class/section and month: present, absent, leave, days marked and % per student, with average.
+  - **Fee Paid / Unpaid:** any month, all classes or one class, All/Paid/Partial/Unpaid choice, totals (billed, collected, pending).
+  - **Fee Defaulters:** active students who still owe fee, biggest balance first, months pending, class filter. New `FeesRepository.getDefaulters`.
+  - **Exam Results:** pick an exam: class result sheet with every subject's marks, total, %, grade, position and result.
+  - **Student History:** pick a student: profile numbers, attendance by month, fee history, exam results.
+  - Search box filters the rows of any list report (on screen and in the exported file).
+  - **Export:** "PDF / Print" opens a PDF preview (print or save; wide reports print sideways, several pages with page numbers, school name in the header). "Save as CSV" opens a Save dialog; the file opens in Excel with Urdu names and money as plain numbers.
+  - 42 new tests (CSV, search filter, all 7 reports with a real database, cubit, PDF, page flows, defaulters). Total 290, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -114,6 +126,9 @@ None.
 - Exams: grade bands and pass mark (33%) are my defaults. If the school uses different ones, tell me and I will change `GradeScale` (one place).
 - Exams: the result card screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
 - Exams: no "absent" mark type; an empty box is treated as absent. Class-wide result sheets / reports come with the Reports module.
+- Reports: the PDF preview screen and the CSV save dialog could not be run in the cloud (they need Windows plugins). The PDF and CSV content were checked.
+- Reports: Defaulters lists active students only. A student who left with unpaid fee is not shown.
+- Reports: the Dashboard and WhatsApp sharing are separate modules; there is no "send report" button here.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -203,6 +218,19 @@ None.
 8. Try deleting an exam that has marks (blocked) and one without (allowed). Try deleting a subject that has marks (blocked).
 9. Create a second exam for the same class and enter marks: both show in the student's Previous results.
 10. Student detail > Results tab shows the marks of each exam.
+
+### Module 9
+1. Open Reports: 7 cards. Open each one in turn.
+2. Students: check totals, class-wise and section-wise tables match the Students list.
+3. New Admissions: change From/To dates. Students who left still show with status Left.
+4. Attendance: pick class, section, month with the arrows. Compare with the Attendance > Monthly Report.
+5. Fee Paid / Unpaid: pick a month and class, try Paid / Partial / Unpaid. Check Billed / Collected / Pending.
+6. Fee Defaulters: compare with students who have unpaid fee in Fees.
+7. Exam Results: choose an exam, check positions and grades match the exam Results tab.
+8. Student History: search a student, check the three tables.
+9. Type in "Search in this report" and see the rows narrow.
+10. Click "PDF / Print": check the preview, then print to "Microsoft Print to PDF". Wide reports (many subjects) should print sideways. Check Urdu names.
+11. Click "Save as CSV", choose a folder, open the file in Excel: columns, Urdu names, money as numbers.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

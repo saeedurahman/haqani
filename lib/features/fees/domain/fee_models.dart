@@ -208,3 +208,20 @@ class GenerationResult extends Equatable {
   @override
   List<Object?> get props => [created, skipped];
 }
+
+/// A student who still owes fee. [voucher] is the newest one, which already
+/// includes older unpaid amounts.
+class Defaulter extends Equatable {
+  const Defaulter({required this.voucher, required this.monthsPending});
+
+  final FeeVoucher voucher;
+
+  /// Number of vouchers with an unpaid balance.
+  final int monthsPending;
+
+  FeeStudent get student => voucher.student;
+  int get balance => voucher.balance;
+
+  @override
+  List<Object?> get props => [voucher, monthsPending];
+}

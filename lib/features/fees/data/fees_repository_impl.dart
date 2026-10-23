@@ -172,6 +172,32 @@ class FeesRepositoryImpl implements FeesRepository {
   }
 
   @override
+  Future<List<Defaulter>> getDefaulters({int? classId}) async {
+    final owing = await _dao.vouchersWithBalance();
+    if (owing.isEmpty) return [];
+    final ids = {for (final v in owing) v.studentId}.toList();
+    final latest = await _dao.latestMonthByStudent(ids);
+    final students = {
+      for (final s in await _dao.studentsByIds(ids))
+        if (s.status == 'active' && (classId == null || s.classId == classId)) s.id: s,
+    };
+
+    final months = <int, int>{};
+    for (final v in owing) {
+      months[v.studentId] = (months[v.studentId] ?? 0) + 1;
+    }
+    final newest = [
+      for (final v in owing)
+        if (students.containsKey(v.studentId) && v.forMonth == latest[v.studentId]) v,
+    ];
+    final converted = await _toVouchers(newest);
+    final result = [
+      for (final v in converted) Defaulter(voucher: v, monthsPending: months[v.student.id] ?? 1),
+    ]..sort((a, b) => b.balance.compareTo(a.balance));
+    return result;
+  }
+
+  @override
   Future<FeeReceipt> collect(List<PaymentRequest> payments, DateTime date) async {
     final real = payments.where((p) => p.amount > 0).toList();
     if (real.isEmpty) throw const FeesException('Enter an amount to receive.');

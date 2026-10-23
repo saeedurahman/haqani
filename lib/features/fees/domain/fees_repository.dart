@@ -40,6 +40,10 @@ abstract class FeesRepository {
     int? sectionId,
   });
 
+  /// Active students who still owe fee, biggest balance first.
+  /// Pass [classId] for one class only.
+  Future<List<Defaulter>> getDefaulters({int? classId});
+
   /// Takes the payments and gives them one new receipt number.
   Future<FeeReceipt> collect(List<PaymentRequest> payments, DateTime date);
 

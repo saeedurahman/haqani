@@ -32,6 +32,13 @@ import '../../features/exams/presentation/cubit/exams_cubit.dart';
 import '../../features/exams/presentation/cubit/marks_cubit.dart';
 import '../../features/exams/presentation/cubit/result_card_cubit.dart';
 import '../../features/exams/presentation/cubit/subjects_cubit.dart';
+import '../../features/reports/data/report_pdf.dart';
+import '../../features/reports/data/reports_repository_impl.dart';
+import '../../features/reports/domain/report_pdf_service.dart';
+import '../../features/reports/domain/reports_repository.dart';
+import '../../features/reports/domain/report_kind.dart';
+import '../../features/reports/presentation/cubit/report_pdf_cubit.dart';
+import '../../features/reports/presentation/cubit/reports_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -142,5 +149,22 @@ void configureDependencies({AppDatabase? database}) {
   getIt.registerFactory<MarksCubit>(() => MarksCubit(getIt<ExamsRepository>()));
   getIt.registerFactory<ResultCardCubit>(
     () => ResultCardCubit(getIt<ExamsRepository>(), getIt<ResultCardPdfService>()),
+  );
+
+  getIt.registerLazySingleton<ReportPdfService>(() => ReportPdf());
+  getIt.registerLazySingleton<ReportsRepository>(
+    () => ReportsRepositoryImpl(
+      students: getIt<StudentsRepository>(),
+      admissions: getIt<AdmissionsRepository>(),
+      attendance: getIt<AttendanceRepository>(),
+      fees: getIt<FeesRepository>(),
+      exams: getIt<ExamsRepository>(),
+    ),
+  );
+  getIt.registerFactoryParam<ReportsCubit, ReportKind, void>(
+    (kind, _) => ReportsCubit(getIt<ReportsRepository>(), kind),
+  );
+  getIt.registerFactory<ReportPdfCubit>(
+    () => ReportPdfCubit(getIt<ReportsRepository>(), getIt<ReportPdfService>()),
   );
 }

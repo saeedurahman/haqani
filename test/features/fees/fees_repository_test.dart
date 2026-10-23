@@ -337,4 +337,46 @@ void main() {
     expect(due!.balance, 1500);
     expect(due.forMonth, '2026-05');
   });
+
+  group('defaulters', () {
+    test('lists active students who owe, biggest balance first, with months pending', () async {
+      await repo.generateVouchers(classId: class1, month: '2026-04');
+      await repo.generateVouchers(classId: class1, month: '2026-05');
+      final may = await repo.getVouchers(month: '2026-05', classId: class1);
+      final saraVoucher = may.firstWhere((v) => v.student.name == 'Sara');
+      await repo.collect([PaymentRequest(voucherId: saraVoucher.id, amount: saraVoucher.total)], today);
+
+      final list = await repo.getDefaulters();
+
+      expect(list.map((d) => d.student.name), ['Ali']);
+      expect(list.single.balance, 3000, reason: 'April and May together');
+      expect(list.single.monthsPending, 2);
+    });
+
+    test('class filter, partial payments and students who left', () async {
+      final other = await addStudent('9', 'Other', cls: class2);
+      await repo.saveFeeStructure(class2, 1000, 0, 0);
+      await repo.generateVouchers(classId: class1, month: '2026-05');
+      await repo.generateVouchers(classId: class2, month: '2026-05');
+      final aliVoucher = (await repo.getVouchers(month: '2026-05', classId: class1))
+          .firstWhere((v) => v.student.name == 'Ali');
+      await repo.collect([PaymentRequest(voucherId: aliVoucher.id, amount: 500)], today);
+      await (db.update(db.students)..where((t) => t.id.equals(sara)))
+          .write(const StudentsCompanion(status: Value('left')));
+
+      expect((await repo.getDefaulters()).map((d) => (d.student.name, d.balance)),
+          [('Ali', 1000), ('Other', 1000)]);
+      expect((await repo.getDefaulters(classId: class2)).single.student.id, other);
+      expect(await repo.getDefaulters(classId: 999), isEmpty);
+    });
+
+    test('nobody owes when everything is paid', () async {
+      await repo.generateVouchers(classId: class1, month: '2026-05');
+      for (final v in await repo.getVouchers(month: '2026-05', classId: class1)) {
+        await repo.collect([PaymentRequest(voucherId: v.id, amount: v.total)], today);
+      }
+
+      expect(await repo.getDefaulters(), isEmpty);
+    });
+  });
 }
