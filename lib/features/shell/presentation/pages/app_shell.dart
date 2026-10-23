@@ -1,0 +1,41 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+
+import '../../../dashboard/presentation/pages/dashboard_page.dart';
+import '../cubit/app_section.dart';
+import '../cubit/navigation_cubit.dart';
+import '../widgets/app_sidebar.dart';
+import 'coming_soon_page.dart';
+
+class AppShell extends StatelessWidget {
+  const AppShell({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Row(
+        children: [
+          const AppSidebar(),
+          Expanded(
+            child: BlocBuilder<NavigationCubit, NavigationState>(
+              builder: (context, state) {
+                return AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 220),
+                  child: KeyedSubtree(
+                    key: ValueKey(state.section),
+                    child: _pageFor(state.section),
+                  ),
+                );
+              },
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _pageFor(AppSection section) {
+    if (section == AppSection.dashboard) return const DashboardPage();
+    return ComingSoonPage(section: section);
+  }
+}
