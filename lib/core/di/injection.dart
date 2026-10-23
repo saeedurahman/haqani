@@ -7,6 +7,11 @@ import '../../features/admissions/domain/certificate_pdf_service.dart';
 import '../../features/admissions/presentation/cubit/admission_form_cubit.dart';
 import '../../features/admissions/presentation/cubit/admissions_cubit.dart';
 import '../../features/admissions/presentation/cubit/certificate_cubit.dart';
+import '../../features/attendance/data/attendance_repository_impl.dart';
+import '../../features/attendance/domain/attendance_repository.dart';
+import '../../features/attendance/presentation/cubit/daily_report_cubit.dart';
+import '../../features/attendance/presentation/cubit/mark_attendance_cubit.dart';
+import '../../features/attendance/presentation/cubit/monthly_report_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -66,5 +71,18 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<CertificateCubit>(
     () => CertificateCubit(getIt<AdmissionsRepository>(), getIt<CertificatePdfService>()),
+  );
+
+  getIt.registerLazySingleton<AttendanceRepository>(
+    () => AttendanceRepositoryImpl(getIt<AppDatabase>()),
+  );
+  getIt.registerFactory<MarkAttendanceCubit>(
+    () => MarkAttendanceCubit(getIt<AttendanceRepository>()),
+  );
+  getIt.registerFactory<DailyReportCubit>(
+    () => DailyReportCubit(getIt<AttendanceRepository>()),
+  );
+  getIt.registerFactory<MonthlyReportCubit>(
+    () => MonthlyReportCubit(getIt<AttendanceRepository>()),
   );
 }

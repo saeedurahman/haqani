@@ -12,6 +12,7 @@ class AppDateField extends StatelessWidget {
     required this.onChanged,
     this.firstDate,
     this.lastDate,
+    this.clearable = true,
   });
 
   final String label;
@@ -19,6 +20,9 @@ class AppDateField extends StatelessWidget {
   final ValueChanged<DateTime?> onChanged;
   final DateTime? firstDate;
   final DateTime? lastDate;
+
+  /// Shows an (x) button to empty the date.
+  final bool clearable;
 
   @override
   Widget build(BuildContext context) {
@@ -41,7 +45,7 @@ class AppDateField extends StatelessWidget {
           child: InputDecorator(
             decoration: InputDecoration(
               prefixIcon: const Icon(Icons.calendar_today_rounded, size: 20, color: AppColors.textMuted),
-              suffixIcon: current == null
+              suffixIcon: current == null || !clearable
                   ? null
                   : IconButton(
                       tooltip: 'Clear date',

@@ -15,7 +15,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 2 | Classes & Sections | [x] | claude/focused-wright-p1vttv |
 | 3 | Students | [x] | claude/focused-wright-p1vttv |
 | 4 | Admissions + Leaving Certificate | [x] | claude/focused-wright-p1vttv |
-| 5 | Attendance | [ ] | |
+| 5 | Attendance | [x] | claude/focused-wright-p1vttv |
 | 6 | Fees | [ ] | |
 | 7 | Staff | [ ] | |
 | 8 | Exams & Results | [ ] | |
@@ -61,6 +61,14 @@ None.
   - School name and address come from `app_settings` (keys `school_name`, `school_address`); defaults are used until the Settings module adds a screen.
   - Moved student-to-domain mapping into `students/data/student_mapper.dart` (shared). `PersonalSection` got an `autoAdmissionNo` option; `AppTextField` got `readOnly` and `helper`; `Student.withAdmissionNo`; `NumberWords` util.
   - 30 new tests (repository, 3 cubits, PDF builder, page flow, number words). Total 104, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 5 Attendance:
+  - `AttendanceDao` + `AttendanceRepository` (interface/impl) + 3 Cubits (mark, daily report, monthly report).
+  - Mark Attendance: choose class, optional section and date (today by default, future dates not allowed). Everyone starts as Present; tap Present / Absent / Leave per student, or "All Present". Counts update live. A bar shows "Not saved yet", "You changed this day" or "Saved for this day". Saving a day again replaces it (unique per student and date, no duplicates). What is typed stays when you look at another tab.
+  - Daily Report (date-wise, per class/section): counts for Total, Present, Absent, Leave, Not marked, and a status for every student.
+  - Monthly Report: month switcher (no future months), class/section, present/absent/leave and % per student (percent = present days out of days marked). Click a student for a day-by-day colour grid.
+  - Only active students are listed. Dashboard "Present today" now shows real numbers.
+  - `AppDateField` got `clearable`. Fixed in tests: attendance buttons no longer have a fixed width.
+  - 44 new tests (repository, 3 cubits, page flow). Total 130, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -70,6 +78,8 @@ None.
 - Students: opening attached files uses the Windows default app; untested on Windows.
 - Admissions: the certificate page (PDF preview, print, save) could not be run in the cloud (needs Windows plugins). Only the PDF itself was checked.
 - Admissions: issuing a certificate does not mark the student as left. Use Mark as Left on the student page.
+- Attendance: the per-student note column exists in the database and is kept when saving, but there is no screen to type a note yet.
+- Attendance: PDF/CSV export of these reports comes with the Reports module.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -112,6 +122,19 @@ None.
 7. Check DOB in words (example: Five March Two Thousand Eighteen), Dues cleared Yes/No, and an Urdu name.
 8. Click Print in the preview. Print to "Microsoft Print to PDF" and open the file. Also try the save/share button.
 9. Check the certificate fits on one A4 page.
+
+### Module 5
+1. Open Attendance. Without classes you see "No classes yet". With classes and students, pick a class.
+2. Everyone is Present (green). Tap Absent and Leave for a few students. Counts at the top change.
+3. Press Save Attendance: "Attendance saved." Check the bar says "Saved for this day."
+4. Change the date to yesterday: all Present again, not saved. Mark and save. Go back to today: today's marks are still there.
+5. Change one student and save again on the same day. Open Daily Report: no duplicate students, correct counts.
+6. Switch tabs before saving: your taps on Mark Attendance must still be there.
+7. Use a class with sections: choose a section, check only that section's students show.
+8. Daily Report: students never marked show "Not marked".
+9. Monthly Report: check counts and %, use the arrows for another month, click a student to see the day grid.
+10. Dashboard: "Present today" matches today's saved attendance.
+11. Mark a student as Left (Students module): they disappear from the attendance lists.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
