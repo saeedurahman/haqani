@@ -54,6 +54,7 @@ class CollectFeeState extends Equatable {
     this.rows = const [],
     this.history = const [],
     this.isCollecting = false,
+    this.note = '',
     this.receipt,
     this.errorMessage,
     this.feedback,
@@ -75,6 +76,9 @@ class CollectFeeState extends Equatable {
   final List<FeeVoucher> history;
   final bool isCollecting;
 
+  /// Optional note saved with the payments and printed on the receipt.
+  final String note;
+
   /// The receipt of the last payment. The page opens it for printing.
   final FeeReceipt? receipt;
   final String? errorMessage;
@@ -94,6 +98,7 @@ class CollectFeeState extends Equatable {
     List<CollectRow>? rows,
     List<FeeVoucher>? history,
     bool? isCollecting,
+    String? note,
     FeeReceipt? receipt,
     String? errorMessage,
     String? feedback,
@@ -108,6 +113,7 @@ class CollectFeeState extends Equatable {
       rows: rows ?? this.rows,
       history: history ?? this.history,
       isCollecting: isCollecting ?? this.isCollecting,
+      note: note ?? this.note,
       receipt: receipt ?? this.receipt,
       errorMessage: errorMessage,
       feedback: feedback,
@@ -125,6 +131,7 @@ class CollectFeeState extends Equatable {
         rows,
         history,
         isCollecting,
+        note,
         receipt,
         errorMessage,
         feedback,

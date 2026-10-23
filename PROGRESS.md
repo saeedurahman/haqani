@@ -146,6 +146,11 @@ None.
   - **Backup/restore:** needs no change (the table is inside the database file). A backup made before this change can still be restored; it is upgraded when the app restarts. Backups made after this change cannot be opened by the older app (the existing "newer version" message).
   - Tests: migration test with a version 1 file (payments copied, nothing lost, run twice, old receipts print, numbering continues), repository tests, dashboard, student history, receipt links widget, backup restore of an older version. Total 436, all pass. `flutter analyze`: no issues.
 
+- 2026-10-23 | Fee receipt note:
+  - Collect Fee has an optional "Note" box above "Receive Fee". The note is saved on every payment of that receipt (`fee_payments.note`), printed as "Note: ..." on the receipt (also when printed again later), and cleared after a successful payment or when another student is chosen. A refused payment keeps what was typed.
+  - If a reprinted receipt has different notes on its rows, they are shown once each, joined with ". ".
+  - Tests: cubit (note sent, cleared, kept on refusal), repository (saved, reprinted, empty), PDF with English and Urdu notes, page shows the box.
+
 ## Known Issues
 - Classes page: reorder is hidden while a search is active. Teachers list stays empty until the Staff module adds staff.
 - Students: Admissions (module 4) will add the automatic admission number flow and certificate; the form here only suggests the next number.
@@ -154,7 +159,6 @@ None.
 - Admissions: issuing a certificate does not mark the student as left. Use Mark as Left on the student page.
 - Attendance: the per-student note column exists in the database and is kept when saving, but there is no screen to type a note yet.
 - Attendance: PDF/CSV export of these reports comes with the Reports module.
-- Fees: the note of a payment is stored (`fee_payments.note`) but there is no box to type it on the Collect screen yet.
 - Fees: the receipt screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
 - Fees: paid/unpaid lists and defaulters for all classes come with the Reports module; here they are per class and month.
 - Staff: salary is only stored and shown. No salary slips, attendance or payroll (not in the module list).
@@ -316,6 +320,7 @@ None.
 3. Collect for two sisters together: one receipt number, both on one receipt. Print it again from either sister's history.
 4. Dashboard "Fees collected this month" equals the sum of the payments received this month.
 5. Restore an old backup (made before this update) in Backup: restart the app and check fee history and receipts are all there.
+6. Fee receipt note: on Collect Fee type a note (also Urdu) and press Receive Fee: the receipt shows "Note: ...". Open the same receipt again from the history: the note is still there. The box is empty for the next payment.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

@@ -15,6 +15,7 @@ import '../../../../core/widgets/snack.dart';
 import '../../../students/presentation/widgets/student_avatar.dart';
 import '../cubit/collect_fee_cubit.dart';
 import '../cubit/collect_fee_state.dart';
+import '../widgets/collect_note_field.dart';
 import '../widgets/collect_row_card.dart';
 import '../widgets/student_fee_history.dart';
 import 'receipt_page.dart';
@@ -228,6 +229,11 @@ class _Selected extends StatelessWidget {
               ],
             ),
           ),
+        ),
+        const SizedBox(height: 8),
+        CollectNoteField(
+          key: ValueKey('${state.selected?.id}-${state.receipt?.receiptNo}'),
+          onChanged: context.read<CollectFeeCubit>().setNote,
         ),
         _CollectBar(state: state),
       ],

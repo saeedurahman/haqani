@@ -111,5 +111,6 @@ void main() {
     expect(find.text('Sara Raza'), findsOneWidget);
     expect(find.text('Brothers and sisters are listed below. Tick who is paying today.'), findsOneWidget);
     expect(find.text('Rs 3,000'), findsWidgets, reason: 'total to receive');
+    expect(find.text('Note (optional)'), findsOneWidget);
   });
 }

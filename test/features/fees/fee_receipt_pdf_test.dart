@@ -54,6 +54,23 @@ void main() {
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
   });
 
+  test('builds a PDF with a note, also an Urdu one', () async {
+    for (final note in ['By cheque 123', 'چیک کے ذریعے']) {
+      final base = receipt([_voucher('Ali Raza', 1)]);
+      final withNote = FeeReceipt(
+        receiptNo: base.receiptNo,
+        date: base.date,
+        schoolName: base.schoolName,
+        schoolAddress: base.schoolAddress,
+        lines: base.lines,
+        note: note,
+      );
+      final bytes = await FeeReceiptPdf().build(withNote);
+      expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
+      expect(bytes.length, greaterThan((await FeeReceiptPdf().build(base)).length));
+    }
+  });
+
   test('writes a sample file for visual checking when asked', () async {
     final path = Platform.environment['RECEIPT_SAMPLE_PATH'];
     if (path == null) return;

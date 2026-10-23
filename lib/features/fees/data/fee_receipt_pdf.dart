@@ -45,6 +45,7 @@ class FeeReceiptPdf implements ReceiptPdfService {
         build: (_) => [
           for (final line in receipt.lines) _student(line),
           if (receipt.lines.length > 1) _grandTotal(receipt),
+          if (receipt.note.isNotEmpty) _note(receipt.note),
         ],
       ),
     );
@@ -162,6 +163,13 @@ class FeeReceiptPdf implements ReceiptPdfService {
           ),
         ],
       ),
+    );
+  }
+
+  pw.Widget _note(String note) {
+    return pw.Padding(
+      padding: const pw.EdgeInsets.only(top: 6),
+      child: pw.Text('Note: $note', style: const pw.TextStyle(fontSize: 9.5, color: _ink)),
     );
   }
 

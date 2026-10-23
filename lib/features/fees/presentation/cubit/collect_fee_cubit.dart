@@ -33,6 +33,7 @@ class CollectFeeCubit extends Cubit<CollectFeeState> {
     emit(state.copyWith(
       status: CollectFeeStatus.loading,
       selected: () => student,
+      note: '',
       rows: const [],
       history: const [],
     ));
@@ -41,8 +42,10 @@ class CollectFeeCubit extends Cubit<CollectFeeState> {
 
   /// Goes back to the search box.
   void clearSelection() {
-    emit(state.copyWith(selected: () => null, rows: const [], history: const []));
+    emit(state.copyWith(selected: () => null, note: '', rows: const [], history: const []));
   }
+
+  void setNote(String note) => emit(state.copyWith(note: note));
 
   void setInclude(int studentId, bool include) => _changeRow(studentId, (r) => r.copyWith(include: include));
 
@@ -99,6 +102,7 @@ class CollectFeeCubit extends Cubit<CollectFeeState> {
             amount: r.pay,
             miscFee: r.miscFee,
             discount: r.discount,
+            note: state.note,
           ),
     ];
     emit(state.copyWith(isCollecting: true));
@@ -107,6 +111,7 @@ class CollectFeeCubit extends Cubit<CollectFeeState> {
       await _loadSelected(selected);
       emit(state.copyWith(
         isCollecting: false,
+        note: '',
         receipt: receipt,
         feedback: 'Fee received. Receipt No ${receipt.receiptNo}.',
         feedbackIsError: false,

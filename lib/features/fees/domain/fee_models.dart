@@ -234,6 +234,7 @@ class FeeReceipt extends Equatable {
     this.schoolPhone = '',
     this.logoPath,
     required this.lines,
+    this.note = '',
   });
 
   final String receiptNo;
@@ -246,12 +247,15 @@ class FeeReceipt extends Equatable {
   final String? logoPath;
   final List<ReceiptLine> lines;
 
+  /// What the office typed when taking the money. Empty if nothing.
+  final String note;
+
   int get totalPaid => lines.fold(0, (sum, l) => sum + l.voucher.paidAmount);
   int get totalBalance => lines.fold(0, (sum, l) => sum + l.voucher.balance);
 
   @override
   List<Object?> get props =>
-      [receiptNo, date, schoolName, schoolAddress, schoolPhone, logoPath, lines];
+      [receiptNo, date, schoolName, schoolAddress, schoolPhone, logoPath, lines, note];
 }
 
 class GenerationResult extends Equatable {

@@ -390,6 +390,34 @@ void main() {
       await cubit.close();
     });
 
+    test('the note goes with every payment, then the box is cleared', () async {
+      repo.outstanding = {1: _voucher(_ali, id: 10), 2: _voucher(_sara, id: 20)};
+      final cubit = make();
+      await cubit.selectStudent(_ali);
+      cubit.setNote('By cheque');
+      expect(cubit.state.note, 'By cheque');
+
+      await cubit.collect();
+
+      expect(repo.lastPayments!.map((p) => p.note), ['By cheque', 'By cheque']);
+      expect(cubit.state.note, '');
+      await cubit.close();
+    });
+
+    test('a refused payment keeps the note; choosing another student clears it', () async {
+      final cubit = make();
+      await cubit.selectStudent(_ali);
+      cubit.setNote('By cheque');
+      repo.blockWith = 'The amount is more than the balance.';
+
+      await cubit.collect();
+      expect(cubit.state.note, 'By cheque');
+
+      await cubit.selectStudent(_sara);
+      expect(cubit.state.note, '');
+      await cubit.close();
+    });
+
     test('a refused payment shows the reason and keeps the screen', () async {
       final cubit = make();
       await cubit.selectStudent(_ali);

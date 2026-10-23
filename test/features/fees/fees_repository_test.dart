@@ -248,6 +248,20 @@ void main() {
       expect(voucher.lastPaymentDate, DateTime(2026, 5, 20));
     });
 
+    test('the note is saved with the payment and printed again with the receipt', () async {
+      final noNote = await repo.collect([PaymentRequest(voucherId: aliVoucher, amount: 100)], today);
+      expect(noNote.note, '');
+
+      final receipt = await repo.collect([
+        PaymentRequest(voucherId: aliVoucher, amount: 200, note: 'By cheque 123'),
+        PaymentRequest(voucherId: saraVoucher, amount: 300, note: 'By cheque 123'),
+      ], today);
+
+      expect(receipt.note, 'By cheque 123', reason: 'same note on both rows is shown once');
+      expect((await repo.getReceipt(receipt.receiptNo))!.note, 'By cheque 123');
+      expect((await repo.getReceipt(noNote.receiptNo))!.note, '');
+    });
+
     test('a refused payment saves no payment row and uses no receipt number', () async {
       await expectLater(
         repo.collect([PaymentRequest(voucherId: aliVoucher, amount: 99999)], today),

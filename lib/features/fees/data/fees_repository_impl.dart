@@ -267,6 +267,7 @@ class FeesRepositoryImpl implements FeesRepository {
       schoolPhone: await _setting(AppConstants.settingSchoolPhone) ?? '',
       logoPath: await _setting(AppConstants.settingLogoPath),
       lines: lines,
+      note: {for (final r in rows) r.note}.where((n) => n.isNotEmpty).join('. '),
     );
   }
 
