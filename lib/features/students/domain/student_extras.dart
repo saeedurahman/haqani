@@ -36,6 +36,9 @@ class ClassOption extends Equatable {
   final String name;
   final List<SectionOption> sections;
 
+  /// Same class without its sections, for screens that only need the class.
+  ClassOption withoutSections() => ClassOption(id: id, name: name);
+
   @override
   List<Object?> get props => [id, name, sections];
 }

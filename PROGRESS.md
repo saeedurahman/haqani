@@ -18,7 +18,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 5 | Attendance | [x] | claude/focused-wright-p1vttv |
 | 6 | Fees | [x] | claude/focused-wright-p1vttv |
 | 7 | Staff | [x] | claude/focused-wright-p1vttv |
-| 8 | Exams & Results | [ ] | |
+| 8 | Exams & Results | [x] | claude/focused-wright-p1vttv |
 | 9 | Reports | [ ] | |
 | 10 | WhatsApp share | [ ] | |
 | 11 | Backup & Restore (local + Google Drive) | [ ] | |
@@ -86,6 +86,16 @@ None.
   - Soft delete: "Mark as Left" (asks first, keeps the record) and "Make Active". A person who left is hidden from the main list, from the teacher choice in Classes and from the dashboard staff count, but a section still shows their name as class teacher.
   - Staff added here now appear in the Classes > class teacher dropdown.
   - 17 new tests (repository including the Classes link, 2 cubits, page flows). Total 197, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 8 Exams & Results:
+  - `ExamsDao` + `ExamsRepository` (interface/impl) + 4 Cubits (exams, subjects, marks, result card). Pure `ResultCalculator` and `GradeScale` hold the rules and are unit tested.
+  - **Exams tab:** create, edit, delete exams (name, class, date), filter by class, search. An exam that has marks cannot be deleted; its class cannot change after marks.
+  - **Subjects tab:** subjects and total marks per class (add, edit, delete). A subject with marks cannot be deleted, and its total cannot go below a mark already given.
+  - **Enter Marks:** one grid per exam: students down, subjects across. Total, % and grade update while typing. A mark above the subject total turns red and blocks Save. Empty box = no mark. Everything is saved in one step, or nothing if one mark is wrong.
+  - **Results tab:** students ordered by position (1st, 2nd, 3rd get gold/silver/bronze badges) with total, %, grade and Pass / Fail / Incomplete.
+  - **Rules (default):** grade A+ 80+, A 70+, B 60+, C 50+, D 40+, E 33+, F below 33. Pass = total at least 33% AND every subject at least 33%. Absent / empty subject counts as 0 in the total, and the student is shown as Incomplete (no position) until every subject has marks. Equal totals share a position (1, 1, 3).
+  - **Result card (PDF, A4):** school, exam, student, class/section, subject table with grades, total, percentage, grade, position ("1st of 24"), result, signature lines. Print one card, or all cards of the class in one PDF. Urdu names work. A "Previous results" list shows the student's other exams.
+  - Marks are stored in the existing `results` table (no schema change). Student detail > Results tab shows them too.
+  - 51 new tests (calculator, repository, 4 cubits, PDF, page flow). Total 248, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -101,6 +111,9 @@ None.
 - Fees: the receipt screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
 - Fees: paid/unpaid lists and defaulters for all classes come with the Reports module; here they are per class and month.
 - Staff: salary is only stored and shown. No salary slips, attendance or payroll (not in the module list).
+- Exams: grade bands and pass mark (33%) are my defaults. If the school uses different ones, tell me and I will change `GradeScale` (one place).
+- Exams: the result card screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
+- Exams: no "absent" mark type; an empty box is treated as absent. Class-wide result sheets / reports come with the Reports module.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -178,6 +191,18 @@ None.
 6. Mark as Left: a confirmation appears, the person leaves the main list. Turn on "Show staff who left": they appear as Left. Make Active brings them back.
 7. Go to Classes > Add/Edit Section: the new teacher is in the class teacher list. After marking them as Left they are gone from the list but the section still shows the name.
 8. Dashboard "Teachers & staff" counts only active people.
+
+### Module 8
+1. Exams > Subjects: pick a class, add English (100), Urdu (100), Math (50). Try a repeated name and total 0: clear messages.
+2. Exams > Exams: Create Exam (name, class, date). Try the same name twice for one class.
+3. Open the exam. Enter marks for the class. Type a mark above the total: red box, Save is disabled. Watch Total, % and Grade change while typing.
+4. Leave one box empty for a student and save: the student is "Incomplete" with no position. Fill it: Pass/Fail and a position appear.
+5. Results tab: order by position, equal totals share a position. Check a student who fails one subject but has a high total is Fail.
+6. Click a student: Result Card with Previous results on the left and the PDF on the right. Print to "Microsoft Print to PDF". Also "Print All Result Cards".
+7. Check the PDF: fields, 1st/2nd/3rd, Urdu name, fits on one A4 page per student.
+8. Try deleting an exam that has marks (blocked) and one without (allowed). Try deleting a subject that has marks (blocked).
+9. Create a second exam for the same class and enter marks: both show in the student's Previous results.
+10. Student detail > Results tab shows the marks of each exam.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

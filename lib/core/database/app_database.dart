@@ -7,6 +7,7 @@ import 'package:path_provider/path_provider.dart';
 
 import 'daos/attendance_dao.dart';
 import 'daos/classes_dao.dart';
+import 'daos/exams_dao.dart';
 import 'daos/fees_dao.dart';
 import 'daos/staff_dao.dart';
 import 'daos/students_dao.dart';
@@ -31,7 +32,7 @@ part 'app_database.g.dart';
     Subjects,
     Results,
   ],
-  daos: [ClassesDao, StudentsDao, AttendanceDao, FeesDao, StaffDao],
+  daos: [ClassesDao, StudentsDao, AttendanceDao, FeesDao, StaffDao, ExamsDao],
 )
 class AppDatabase extends _$AppDatabase {
   AppDatabase() : super(_openConnection());
