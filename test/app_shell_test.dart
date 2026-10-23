@@ -35,7 +35,7 @@ void main() {
     expect(find.text('Collect Fee'), findsOneWidget);
     expect(find.text('No backup yet'), findsOneWidget);
 
-    await tester.tap(find.text('Staff').first);
+    await tester.tap(find.text('Exams').first);
     await tester.pump(const Duration(milliseconds: 400));
 
     expect(find.text('This section is coming soon.'), findsOneWidget);
