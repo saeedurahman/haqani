@@ -20,6 +20,10 @@ import '../../features/fees/presentation/cubit/collect_fee_cubit.dart';
 import '../../features/fees/presentation/cubit/fee_structure_cubit.dart';
 import '../../features/fees/presentation/cubit/receipt_cubit.dart';
 import '../../features/fees/presentation/cubit/vouchers_cubit.dart';
+import '../../features/staff/data/staff_repository_impl.dart';
+import '../../features/staff/domain/staff_repository.dart';
+import '../../features/staff/presentation/cubit/staff_cubit.dart';
+import '../../features/staff/presentation/cubit/staff_form_cubit.dart';
 import '../../features/classes/data/classes_repository_impl.dart';
 import '../../features/classes/domain/classes_repository.dart';
 import '../../features/classes/presentation/cubit/classes_cubit.dart';
@@ -109,5 +113,13 @@ void configureDependencies({AppDatabase? database}) {
   );
   getIt.registerFactory<ReceiptCubit>(
     () => ReceiptCubit(getIt<FeesRepository>(), getIt<ReceiptPdfService>()),
+  );
+
+  getIt.registerLazySingleton<StaffRepository>(
+    () => StaffRepositoryImpl(getIt<AppDatabase>()),
+  );
+  getIt.registerFactory<StaffCubit>(() => StaffCubit(getIt<StaffRepository>()));
+  getIt.registerFactory<StaffFormCubit>(
+    () => StaffFormCubit(getIt<StaffRepository>()),
   );
 }

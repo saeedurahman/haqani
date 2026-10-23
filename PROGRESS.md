@@ -17,7 +17,7 @@ Claude: update this file after every task. Keep it short and accurate.
 | 4 | Admissions + Leaving Certificate | [x] | claude/focused-wright-p1vttv |
 | 5 | Attendance | [x] | claude/focused-wright-p1vttv |
 | 6 | Fees | [x] | claude/focused-wright-p1vttv |
-| 7 | Staff | [ ] | |
+| 7 | Staff | [x] | claude/focused-wright-p1vttv |
 | 8 | Exams & Results | [ ] | |
 | 9 | Reports | [ ] | |
 | 10 | WhatsApp share | [ ] | |
@@ -79,6 +79,13 @@ None.
   - Receipt numbers are 1, 2, 3... and all steps run in one database transaction.
   - New shared `MonthSwitcher` and `MoneyField`. Dashboard "Fees collected this month" now shows real numbers.
   - 48 new tests (repository, 4 cubits, receipt PDF, page flow). Total 178, all pass. `flutter analyze`: no issues.
+- 2026-10-23 | Module 7 Staff:
+  - `StaffDao` + `StaffRepository` (interface/impl) + 2 Cubits (list, form). Domain model is `StaffMember` (the database table class is called `Staff`).
+  - List: search by name, father name, designation or phone; "Show staff who left" switch; shows designation, phone, joining date, salary, status. Empty, loading, error states.
+  - Add/Edit form: name (required), father name, designation, phone and CNIC (format checked), joining date, monthly salary (digits only), address.
+  - Soft delete: "Mark as Left" (asks first, keeps the record) and "Make Active". A person who left is hidden from the main list, from the teacher choice in Classes and from the dashboard staff count, but a section still shows their name as class teacher.
+  - Staff added here now appear in the Classes > class teacher dropdown.
+  - 17 new tests (repository including the Classes link, 2 cubits, page flows). Total 197, all pass. `flutter analyze`: no issues.
 
 ## Known Issues
 - Dashboard stat cards show 0 until the Students, Attendance, Fees and Staff modules add data.
@@ -93,6 +100,7 @@ None.
 - Fees: the database keeps one receipt number and one date per voucher (no separate payments table). If a voucher is paid in two parts, the second receipt replaces the first receipt number on that voucher, and the dashboard counts the whole paid amount in the month of the last payment. The old receipt can no longer be printed again. Adding a payments table would fix this; ask before changing the schema.
 - Fees: the receipt screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
 - Fees: paid/unpaid lists and defaulters for all classes come with the Reports module; here they are per class and month.
+- Staff: salary is only stored and shown. No salary slips, attendance or payroll (not in the module list).
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -160,6 +168,16 @@ None.
 8. Try Misc fee and Discount. Try typing more than the balance in "Receive now": it stops at the balance.
 9. A student with nothing due shows "Create this month's voucher".
 10. Student detail > Fees tab shows the same vouchers. Dashboard "Fees collected this month" matches what you received.
+
+### Module 7
+1. Open Staff: "No staff yet". Click Add Staff.
+2. Save with an empty name: red message. Try a wrong phone (123) and a wrong CNIC: clear messages.
+3. Add a teacher with all fields (also one with an Urdu name). Check the row shows designation, phone, joining date and salary.
+4. Search by name, designation and phone.
+5. Open a person, change the salary, Save Changes. Check the list.
+6. Mark as Left: a confirmation appears, the person leaves the main list. Turn on "Show staff who left": they appear as Left. Make Active brings them back.
+7. Go to Classes > Add/Edit Section: the new teacher is in the class teacher list. After marking them as Left they are gone from the list but the section still shows the name.
+8. Dashboard "Teachers & staff" counts only active people.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
