@@ -229,7 +229,7 @@ class PeopleReports {
             for (final f in fees)
               [
                 f.forMonth,
-                f.receiptNo.isEmpty ? '-' : f.receiptNo,
+                f.receiptNos.isEmpty ? '-' : f.receiptNos,
                 MoneyUtils.format(f.total),
                 MoneyUtils.format(f.paidAmount),
                 MoneyUtils.format(f.balance),

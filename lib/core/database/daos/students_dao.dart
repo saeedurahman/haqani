@@ -31,6 +31,7 @@ class ResultRow {
     StudentDocuments,
     Attendance,
     FeeVouchers,
+    FeePayments,
     Exams,
     Subjects,
     Results,
@@ -175,6 +176,15 @@ class StudentsDao extends DatabaseAccessor<AppDatabase> with _$StudentsDaoMixin 
     return (select(feeVouchers)
           ..where((t) => t.studentId.equals(studentId))
           ..orderBy([(t) => OrderingTerm.desc(t.date), (t) => OrderingTerm.desc(t.id)]))
+        .get();
+  }
+
+  /// Payments of the given vouchers, oldest first.
+  Future<List<FeePaymentRow>> paymentsOf(List<int> voucherIds) {
+    if (voucherIds.isEmpty) return Future.value(const []);
+    return (select(feePayments)
+          ..where((t) => t.voucherId.isIn(voucherIds))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
         .get();
   }
 

@@ -176,8 +176,8 @@ class _List extends StatelessWidget {
                   itemBuilder: (context, i) => VoucherRow(
                     voucher: visible[i],
                     onRemind: () => cubit.remind(visible[i]),
-                    onReceipt: () => Navigator.of(context).push(MaterialPageRoute<void>(
-                      builder: (_) => ReceiptPage(receiptNo: visible[i].receiptNo),
+                    onReceipt: (no) => Navigator.of(context).push(MaterialPageRoute<void>(
+                      builder: (_) => ReceiptPage(receiptNo: no),
                     )),
                   ),
                 ),

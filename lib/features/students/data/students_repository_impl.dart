@@ -164,6 +164,10 @@ class StudentsRepositoryImpl implements StudentsRepository {
     final attendance = await _dao.attendanceOf(studentId);
     final vouchers = await _dao.vouchersOf(studentId);
     final results = await _dao.resultsOf(studentId);
+    final payments = <int, List<FeePaymentRow>>{};
+    for (final p in await _dao.paymentsOf([for (final v in vouchers) v.id])) {
+      payments.putIfAbsent(p.voucherId, () => []).add(p);
+    }
     return StudentHistory(
       attendance: [
         for (final a in attendance)
@@ -172,8 +176,8 @@ class StudentsRepositoryImpl implements StudentsRepository {
       fees: [
         for (final v in vouchers)
           FeeRecord(
-            receiptNo: v.receiptNo,
-            date: DateTime.parse(v.date),
+            receiptNo: (payments[v.id] ?? const []).map((p) => p.receiptNo).join(', '),
+            date: DateTime.parse((payments[v.id] ?? const []).lastOrNull?.date ?? v.date),
             forMonth: v.forMonth,
             total: v.total,
             paidAmount: v.paidAmount,

@@ -244,6 +244,16 @@ void main() {
       );
     });
 
+    test('a backup from an older app version (before fee payments) is accepted', () async {
+      final zip = await service.createBackup(db, backups, now);
+      final archive = ZipDecoder().decodeBytes(zip.readAsBytesSync());
+      final bytes = List<int>.of(archive.findFile('school.sqlite')!.content as List<int>);
+      bytes[63] = 1;
+      final older = await zipWith('school.sqlite', bytes);
+
+      await expectLater(service.restore(older, db), completes);
+    });
+
     test('a backup from a newer app version is refused', () async {
       final zip = await service.createBackup(db, backups, now);
       final archive = ZipDecoder().decodeBytes(zip.readAsBytesSync());

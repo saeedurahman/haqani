@@ -97,9 +97,17 @@ void main() {
           FeeVouchersCompanion(
             paidAmount: Value(v.total),
             status: const Value('paid'),
-            receiptNo: Value('${v.id}'),
           ),
           where: (t) => t.id.equals(v.id),
+        );
+        b.insert(
+          db.feePayments,
+          FeePaymentsCompanion.insert(
+            voucherId: v.id,
+            receiptNo: '${v.id}',
+            date: v.date,
+            amount: v.total,
+          ),
         );
       }
     });

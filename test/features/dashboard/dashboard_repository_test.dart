@@ -75,23 +75,31 @@ void main() {
     expect((await repository.loadSummary(today)).presentToday, 1);
   });
 
-  test('sums fees paid this month only', () async {
+  test('sums payments taken this month only, even on older vouchers', () async {
     final id = await addStudent('1');
-    Future<void> voucher(String no, String date, int paid) {
-      return db.into(db.feeVouchers).insert(
-            FeeVouchersCompanion.insert(
+    final voucher = await db.into(db.feeVouchers).insert(
+          FeeVouchersCompanion.insert(
+            receiptNo: '',
+            date: '2026-04-01',
+            studentId: id,
+            forMonth: '2026-04',
+            paidAmount: const Value(11000),
+          ),
+        );
+    Future<void> pay(String no, String date, int amount) {
+      return db.into(db.feePayments).insert(
+            FeePaymentsCompanion.insert(
+              voucherId: voucher,
               receiptNo: no,
               date: date,
-              studentId: id,
-              forMonth: date.substring(0, 7),
-              paidAmount: Value(paid),
+              amount: amount,
             ),
           );
     }
 
-    await voucher('R1', '2026-05-02', 1500);
-    await voucher('R2', '2026-05-10', 500);
-    await voucher('R3', '2026-04-28', 9000);
+    await pay('R1', '2026-05-02', 1500);
+    await pay('R2', '2026-05-10', 500);
+    await pay('R3', '2026-04-28', 9000);
 
     expect((await repository.loadSummary(today)).feesCollectedThisMonth, 2000);
   });

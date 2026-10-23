@@ -75,11 +75,30 @@ class FeeStudent extends Equatable {
       [id, name, admissionNo, registrationNo, fatherName, gender, classLabel];
 }
 
+/// Money taken against one voucher, with its own receipt number.
+class FeePayment extends Equatable {
+  const FeePayment({
+    required this.id,
+    required this.receiptNo,
+    required this.date,
+    required this.amount,
+    this.note = '',
+  });
+
+  final int id;
+  final String receiptNo;
+  final DateTime date;
+  final int amount;
+  final String note;
+
+  @override
+  List<Object?> get props => [id, receiptNo, date, amount, note];
+}
+
 /// One fee bill for one student and one month.
 class FeeVoucher extends Equatable {
   const FeeVoucher({
     required this.id,
-    required this.receiptNo,
     required this.date,
     required this.student,
     required this.forMonth,
@@ -93,14 +112,12 @@ class FeeVoucher extends Equatable {
     this.paidAmount = 0,
     required this.status,
     this.carriedForward = false,
+    this.payments = const [],
   });
 
   final int id;
 
-  /// Empty until the first payment.
-  final String receiptNo;
-
-  /// Day the voucher was made, or the day of the last payment.
+  /// Day the voucher was made.
   final DateTime date;
   final FeeStudent student;
 
@@ -119,7 +136,38 @@ class FeeVoucher extends Equatable {
   /// True when a newer voucher already includes what is still unpaid here.
   final bool carriedForward;
 
+  /// Every payment taken on this voucher, oldest first.
+  final List<FeePayment> payments;
+
+  /// Receipt of the newest payment, or empty if nothing was paid yet.
+  String get receiptNo => payments.isEmpty ? '' : payments.last.receiptNo;
+
+  /// All receipt numbers, oldest first, e.g. `3, 9`.
+  String get receiptNos => payments.map((p) => p.receiptNo).join(', ');
+
+  /// Day of the newest payment, or null if nothing was paid yet.
+  DateTime? get lastPaymentDate => payments.isEmpty ? null : payments.last.date;
+
   int get balance => total - paidAmount;
+
+  /// The voucher as it stood after a given payment (used to print old receipts).
+  FeeVoucher withPaid(int paid) => FeeVoucher(
+        id: id,
+        date: date,
+        student: student,
+        forMonth: forMonth,
+        monthlyFee: monthlyFee,
+        annualFee: annualFee,
+        admissionFee: admissionFee,
+        miscFee: miscFee,
+        discount: discount,
+        previousDues: previousDues,
+        total: total,
+        paidAmount: paid,
+        status: FeeStatus.of(total, paid),
+        carriedForward: carriedForward,
+        payments: payments,
+      );
 
   /// Everything except misc fee and discount, which the office can change.
   int get baseTotal => monthlyFee + annualFee + admissionFee + previousDues;
@@ -127,7 +175,6 @@ class FeeVoucher extends Equatable {
   @override
   List<Object?> get props => [
         id,
-        receiptNo,
         date,
         student,
         forMonth,
@@ -141,6 +188,7 @@ class FeeVoucher extends Equatable {
         paidAmount,
         status,
         carriedForward,
+        payments,
       ];
 }
 
@@ -151,15 +199,17 @@ class PaymentRequest extends Equatable {
     required this.amount,
     this.miscFee = 0,
     this.discount = 0,
+    this.note = '',
   });
 
   final int voucherId;
   final int amount;
   final int miscFee;
   final int discount;
+  final String note;
 
   @override
-  List<Object?> get props => [voucherId, amount, miscFee, discount];
+  List<Object?> get props => [voucherId, amount, miscFee, discount, note];
 }
 
 class ReceiptLine extends Equatable {
@@ -167,7 +217,7 @@ class ReceiptLine extends Equatable {
 
   final FeeVoucher voucher;
 
-  /// Amount taken in this payment. Null when a receipt is printed again later.
+  /// Amount taken in this payment (the money on this receipt).
   final int? receivedNow;
 
   @override

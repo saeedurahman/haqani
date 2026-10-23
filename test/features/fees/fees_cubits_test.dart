@@ -20,7 +20,6 @@ FeeVoucher _voucher(FeeStudent s, {int id = 1, int paid = 0, int previous = 0, i
   final total = monthly + previous + misc;
   return FeeVoucher(
     id: id,
-    receiptNo: '',
     date: DateTime(2026, 5, 1),
     student: s,
     forMonth: '2026-05',

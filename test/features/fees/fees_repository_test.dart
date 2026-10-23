@@ -211,9 +211,51 @@ void main() {
       expect(receipt.totalPaid, 2200);
       final fetched = await repo.getReceipt(receipt.receiptNo);
       expect(fetched!.lines.map((l) => l.voucher.student.name).toSet(), {'Ali', 'Sara'});
-      expect(fetched.lines.every((l) => l.receivedNow == null), isTrue);
-      expect(await db.select(db.feeVouchers).get().then((r) => r.map((v) => v.receiptNo).toSet()),
-          {'1'});
+      expect(fetched.lines.map((l) => l.receivedNow).toSet(), {1500, 700});
+      final rows = await db.select(db.feePayments).get();
+      expect(rows.map((r) => r.receiptNo).toSet(), {'1'});
+      expect(rows.map((r) => r.amount).toSet(), {1500, 700});
+    });
+
+    test('every payment on a voucher has its own receipt and can be printed again', () async {
+      final first = await repo.collect([PaymentRequest(voucherId: aliVoucher, amount: 500)], today);
+      today = DateTime(2026, 5, 20);
+      final second = await repo.collect(
+        [PaymentRequest(voucherId: aliVoucher, amount: 400, note: ' by cheque ')],
+        today,
+      );
+
+      expect((first.receiptNo, second.receiptNo), ('1', '2'));
+      final rows = await db.select(db.feePayments).get();
+      expect(rows.map((r) => (r.voucherId, r.receiptNo, r.date, r.amount, r.note)), [
+        (aliVoucher, '1', '2026-05-10', 500, ''),
+        (aliVoucher, '2', '2026-05-20', 400, 'by cheque'),
+      ]);
+
+      // The old receipt still shows what it showed that day.
+      final old = (await repo.getReceipt('1'))!;
+      expect(old.date, DateTime(2026, 5, 10));
+      final line = old.lines.single;
+      expect((line.receivedNow, line.voucher.paidAmount, line.voucher.balance), (500, 500, 1000));
+      expect(line.voucher.status, 'partial');
+      final latest = (await repo.getReceipt('2'))!;
+      expect(latest.date, DateTime(2026, 5, 20));
+      expect(latest.lines.single.voucher.paidAmount, 900);
+
+      final voucher = (await repo.getHistory(ali)).first;
+      expect(voucher.payments.map((p) => (p.receiptNo, p.amount)), [('1', 500), ('2', 400)]);
+      expect((voucher.receiptNo, voucher.receiptNos), ('2', '1, 2'));
+      expect(voucher.lastPaymentDate, DateTime(2026, 5, 20));
+    });
+
+    test('a refused payment saves no payment row and uses no receipt number', () async {
+      await expectLater(
+        repo.collect([PaymentRequest(voucherId: aliVoucher, amount: 99999)], today),
+        throwsA(isA<FeesException>()),
+      );
+      expect(await db.select(db.feePayments).get(), isEmpty);
+      final ok = await repo.collect([PaymentRequest(voucherId: aliVoucher, amount: 100)], today);
+      expect(ok.receiptNo, '1');
     });
 
     test('misc fee and discount change the total', () async {

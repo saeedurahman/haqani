@@ -13,7 +13,6 @@ import '../../support/fake_whatsapp.dart';
 
 FeeVoucher _voucher(int id, String name, {int total = 1500, int paid = 1500}) => FeeVoucher(
       id: id,
-      receiptNo: '12',
       date: DateTime(2026, 5, 10),
       student: FeeStudent(id: id, name: name, admissionNo: '$id'),
       forMonth: '2026-05',

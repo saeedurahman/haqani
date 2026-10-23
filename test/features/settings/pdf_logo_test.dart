@@ -53,7 +53,6 @@ void main() {
             ReceiptLine(
               voucher: FeeVoucher(
                 id: 1,
-                receiptNo: '1',
                 date: DateTime(2026, 5, 10),
                 student: const FeeStudent(id: 1, name: 'Ali', admissionNo: '1'),
                 forMonth: '2026-05',

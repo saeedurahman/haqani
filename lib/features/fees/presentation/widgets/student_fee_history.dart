@@ -5,6 +5,7 @@ import '../../../../core/utils/money_utils.dart';
 import '../../../../core/widgets/section_card.dart';
 import '../../domain/fee_models.dart';
 import 'fee_status_chip.dart';
+import 'receipt_links.dart';
 
 /// Every voucher of one student, newest month first.
 class StudentFeeHistory extends StatelessWidget {
@@ -35,18 +36,16 @@ class StudentFeeHistory extends StatelessWidget {
                           flex: 4,
                           child: Text(
                             '${MoneyUtils.format(v.paidAmount)} of ${MoneyUtils.format(v.total)}'
-                            '${v.paidAmount > 0 ? '  (${AppDateUtils.toDisplay(v.date)})' : ''}',
+                            '${v.lastPaymentDate == null ? '' : '  (${AppDateUtils.toDisplay(v.lastPaymentDate!)})'}',
                           ),
                         ),
                         FeeStatusChip(voucher: v),
                         SizedBox(
-                          width: 130,
-                          child: v.receiptNo.isNotEmpty && v.paidAmount > 0
-                              ? TextButton(
-                                  onPressed: () => onReceipt(v.receiptNo),
-                                  child: Text('Receipt ${v.receiptNo}'),
-                                )
-                              : null,
+                          width: 150,
+                          child: Align(
+                            alignment: Alignment.centerRight,
+                            child: ReceiptLinks(payments: v.payments, onOpen: onReceipt),
+                          ),
                         ),
                       ],
                     ),

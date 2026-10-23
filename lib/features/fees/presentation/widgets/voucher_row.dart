@@ -6,6 +6,7 @@ import '../../../../core/widgets/whatsapp_button.dart';
 import '../../../../core/utils/money_utils.dart';
 import '../../domain/fee_models.dart';
 import 'fee_status_chip.dart';
+import 'receipt_links.dart';
 
 class VoucherRow extends StatelessWidget {
   const VoucherRow({
@@ -16,7 +17,8 @@ class VoucherRow extends StatelessWidget {
   });
 
   final FeeVoucher voucher;
-  final VoidCallback onReceipt;
+  /// Called with the receipt number to show.
+  final ValueChanged<String> onReceipt;
 
   /// Opens WhatsApp with a fee reminder. Only shown while a balance is left.
   final VoidCallback onRemind;
@@ -24,7 +26,6 @@ class VoucherRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final muted = Theme.of(context).textTheme.bodyMedium;
-    final hasReceipt = voucher.receiptNo.isNotEmpty && voucher.paidAmount > 0;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
       decoration: BoxDecoration(
@@ -75,13 +76,7 @@ class VoucherRow extends StatelessWidget {
             width: 130,
             child: Align(
               alignment: Alignment.centerRight,
-              child: hasReceipt
-                  ? TextButton.icon(
-                      onPressed: onReceipt,
-                      icon: const Icon(Icons.receipt_long_rounded, size: 18),
-                      label: Text('Receipt ${voucher.receiptNo}'),
-                    )
-                  : const SizedBox.shrink(),
+              child: ReceiptLinks(payments: voucher.payments, onOpen: onReceipt),
             ),
           ),
         ],

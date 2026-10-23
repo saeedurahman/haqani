@@ -68,10 +68,10 @@ class DashboardRepositoryImpl implements DashboardRepository {
   }
 
   Future<int> _collectedIn(String month) async {
-    final sum = _db.feeVouchers.paidAmount.sum();
-    final query = _db.selectOnly(_db.feeVouchers)
+    final sum = _db.feePayments.amount.sum();
+    final query = _db.selectOnly(_db.feePayments)
       ..addColumns([sum])
-      ..where(_db.feeVouchers.date.like('$month-%'));
+      ..where(_db.feePayments.date.like('$month-%'));
     return (await query.getSingle()).read(sum) ?? 0;
   }
 }

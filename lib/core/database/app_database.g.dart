@@ -3928,7 +3928,11 @@ class $FeeVouchersTable extends FeeVouchers
 
 class FeeVoucher extends DataClass implements Insertable<FeeVoucher> {
   final int id;
+
+  /// Old column, always empty now: receipts live in [FeePayments].
   final String receiptNo;
+
+  /// Day the voucher was made.
   final String date;
   final int studentId;
 
@@ -4342,6 +4346,400 @@ class FeeVouchersCompanion extends UpdateCompanion<FeeVoucher> {
           ..write('total: $total, ')
           ..write('paidAmount: $paidAmount, ')
           ..write('status: $status')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $FeePaymentsTable extends FeePayments
+    with TableInfo<$FeePaymentsTable, FeePaymentRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FeePaymentsTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    hasAutoIncrement: true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'PRIMARY KEY AUTOINCREMENT',
+    ),
+  );
+  static const VerificationMeta _voucherIdMeta = const VerificationMeta(
+    'voucherId',
+  );
+  @override
+  late final GeneratedColumn<int> voucherId = GeneratedColumn<int>(
+    'voucher_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES fee_vouchers (id)',
+    ),
+  );
+  static const VerificationMeta _receiptNoMeta = const VerificationMeta(
+    'receiptNo',
+  );
+  @override
+  late final GeneratedColumn<String> receiptNo = GeneratedColumn<String>(
+    'receipt_no',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _dateMeta = const VerificationMeta('date');
+  @override
+  late final GeneratedColumn<String> date = GeneratedColumn<String>(
+    'date',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _amountMeta = const VerificationMeta('amount');
+  @override
+  late final GeneratedColumn<int> amount = GeneratedColumn<int>(
+    'amount',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _noteMeta = const VerificationMeta('note');
+  @override
+  late final GeneratedColumn<String> note = GeneratedColumn<String>(
+    'note',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(''),
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    voucherId,
+    receiptNo,
+    date,
+    amount,
+    note,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'fee_payments';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FeePaymentRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('voucher_id')) {
+      context.handle(
+        _voucherIdMeta,
+        voucherId.isAcceptableOrUnknown(data['voucher_id']!, _voucherIdMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_voucherIdMeta);
+    }
+    if (data.containsKey('receipt_no')) {
+      context.handle(
+        _receiptNoMeta,
+        receiptNo.isAcceptableOrUnknown(data['receipt_no']!, _receiptNoMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_receiptNoMeta);
+    }
+    if (data.containsKey('date')) {
+      context.handle(
+        _dateMeta,
+        date.isAcceptableOrUnknown(data['date']!, _dateMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_dateMeta);
+    }
+    if (data.containsKey('amount')) {
+      context.handle(
+        _amountMeta,
+        amount.isAcceptableOrUnknown(data['amount']!, _amountMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_amountMeta);
+    }
+    if (data.containsKey('note')) {
+      context.handle(
+        _noteMeta,
+        note.isAcceptableOrUnknown(data['note']!, _noteMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FeePaymentRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FeePaymentRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      voucherId: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}voucher_id'],
+      )!,
+      receiptNo: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}receipt_no'],
+      )!,
+      date: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}date'],
+      )!,
+      amount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}amount'],
+      )!,
+      note: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}note'],
+      )!,
+    );
+  }
+
+  @override
+  $FeePaymentsTable createAlias(String alias) {
+    return $FeePaymentsTable(attachedDatabase, alias);
+  }
+}
+
+class FeePaymentRow extends DataClass implements Insertable<FeePaymentRow> {
+  final int id;
+  final int voucherId;
+  final String receiptNo;
+  final String date;
+  final int amount;
+  final String note;
+  const FeePaymentRow({
+    required this.id,
+    required this.voucherId,
+    required this.receiptNo,
+    required this.date,
+    required this.amount,
+    required this.note,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['voucher_id'] = Variable<int>(voucherId);
+    map['receipt_no'] = Variable<String>(receiptNo);
+    map['date'] = Variable<String>(date);
+    map['amount'] = Variable<int>(amount);
+    map['note'] = Variable<String>(note);
+    return map;
+  }
+
+  FeePaymentsCompanion toCompanion(bool nullToAbsent) {
+    return FeePaymentsCompanion(
+      id: Value(id),
+      voucherId: Value(voucherId),
+      receiptNo: Value(receiptNo),
+      date: Value(date),
+      amount: Value(amount),
+      note: Value(note),
+    );
+  }
+
+  factory FeePaymentRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FeePaymentRow(
+      id: serializer.fromJson<int>(json['id']),
+      voucherId: serializer.fromJson<int>(json['voucherId']),
+      receiptNo: serializer.fromJson<String>(json['receiptNo']),
+      date: serializer.fromJson<String>(json['date']),
+      amount: serializer.fromJson<int>(json['amount']),
+      note: serializer.fromJson<String>(json['note']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'voucherId': serializer.toJson<int>(voucherId),
+      'receiptNo': serializer.toJson<String>(receiptNo),
+      'date': serializer.toJson<String>(date),
+      'amount': serializer.toJson<int>(amount),
+      'note': serializer.toJson<String>(note),
+    };
+  }
+
+  FeePaymentRow copyWith({
+    int? id,
+    int? voucherId,
+    String? receiptNo,
+    String? date,
+    int? amount,
+    String? note,
+  }) => FeePaymentRow(
+    id: id ?? this.id,
+    voucherId: voucherId ?? this.voucherId,
+    receiptNo: receiptNo ?? this.receiptNo,
+    date: date ?? this.date,
+    amount: amount ?? this.amount,
+    note: note ?? this.note,
+  );
+  FeePaymentRow copyWithCompanion(FeePaymentsCompanion data) {
+    return FeePaymentRow(
+      id: data.id.present ? data.id.value : this.id,
+      voucherId: data.voucherId.present ? data.voucherId.value : this.voucherId,
+      receiptNo: data.receiptNo.present ? data.receiptNo.value : this.receiptNo,
+      date: data.date.present ? data.date.value : this.date,
+      amount: data.amount.present ? data.amount.value : this.amount,
+      note: data.note.present ? data.note.value : this.note,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeePaymentRow(')
+          ..write('id: $id, ')
+          ..write('voucherId: $voucherId, ')
+          ..write('receiptNo: $receiptNo, ')
+          ..write('date: $date, ')
+          ..write('amount: $amount, ')
+          ..write('note: $note')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, voucherId, receiptNo, date, amount, note);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FeePaymentRow &&
+          other.id == this.id &&
+          other.voucherId == this.voucherId &&
+          other.receiptNo == this.receiptNo &&
+          other.date == this.date &&
+          other.amount == this.amount &&
+          other.note == this.note);
+}
+
+class FeePaymentsCompanion extends UpdateCompanion<FeePaymentRow> {
+  final Value<int> id;
+  final Value<int> voucherId;
+  final Value<String> receiptNo;
+  final Value<String> date;
+  final Value<int> amount;
+  final Value<String> note;
+  const FeePaymentsCompanion({
+    this.id = const Value.absent(),
+    this.voucherId = const Value.absent(),
+    this.receiptNo = const Value.absent(),
+    this.date = const Value.absent(),
+    this.amount = const Value.absent(),
+    this.note = const Value.absent(),
+  });
+  FeePaymentsCompanion.insert({
+    this.id = const Value.absent(),
+    required int voucherId,
+    required String receiptNo,
+    required String date,
+    required int amount,
+    this.note = const Value.absent(),
+  }) : voucherId = Value(voucherId),
+       receiptNo = Value(receiptNo),
+       date = Value(date),
+       amount = Value(amount);
+  static Insertable<FeePaymentRow> custom({
+    Expression<int>? id,
+    Expression<int>? voucherId,
+    Expression<String>? receiptNo,
+    Expression<String>? date,
+    Expression<int>? amount,
+    Expression<String>? note,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (voucherId != null) 'voucher_id': voucherId,
+      if (receiptNo != null) 'receipt_no': receiptNo,
+      if (date != null) 'date': date,
+      if (amount != null) 'amount': amount,
+      if (note != null) 'note': note,
+    });
+  }
+
+  FeePaymentsCompanion copyWith({
+    Value<int>? id,
+    Value<int>? voucherId,
+    Value<String>? receiptNo,
+    Value<String>? date,
+    Value<int>? amount,
+    Value<String>? note,
+  }) {
+    return FeePaymentsCompanion(
+      id: id ?? this.id,
+      voucherId: voucherId ?? this.voucherId,
+      receiptNo: receiptNo ?? this.receiptNo,
+      date: date ?? this.date,
+      amount: amount ?? this.amount,
+      note: note ?? this.note,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (voucherId.present) {
+      map['voucher_id'] = Variable<int>(voucherId.value);
+    }
+    if (receiptNo.present) {
+      map['receipt_no'] = Variable<String>(receiptNo.value);
+    }
+    if (date.present) {
+      map['date'] = Variable<String>(date.value);
+    }
+    if (amount.present) {
+      map['amount'] = Variable<int>(amount.value);
+    }
+    if (note.present) {
+      map['note'] = Variable<String>(note.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FeePaymentsCompanion(')
+          ..write('id: $id, ')
+          ..write('voucherId: $voucherId, ')
+          ..write('receiptNo: $receiptNo, ')
+          ..write('date: $date, ')
+          ..write('amount: $amount, ')
+          ..write('note: $note')
           ..write(')'))
         .toString();
   }
@@ -5316,6 +5714,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
   late final $AttendanceTable attendance = $AttendanceTable(this);
   late final $FeeStructureTable feeStructure = $FeeStructureTable(this);
   late final $FeeVouchersTable feeVouchers = $FeeVouchersTable(this);
+  late final $FeePaymentsTable feePayments = $FeePaymentsTable(this);
   late final $ExamsTable exams = $ExamsTable(this);
   late final $SubjectsTable subjects = $SubjectsTable(this);
   late final $ResultsTable results = $ResultsTable(this);
@@ -5339,6 +5738,7 @@ abstract class _$AppDatabase extends GeneratedDatabase {
     attendance,
     feeStructure,
     feeVouchers,
+    feePayments,
     exams,
     subjects,
     results,
@@ -9101,6 +9501,24 @@ final class $$FeeVouchersTableReferences
       manager.$state.copyWith(prefetchedData: [item]),
     );
   }
+
+  static MultiTypedResultKey<$FeePaymentsTable, List<FeePaymentRow>>
+  _feePaymentsRefsTable(_$AppDatabase db) => MultiTypedResultKey.fromTable(
+    db.feePayments,
+    aliasName: 'fee_vouchers__id__fee_payments__voucher_id',
+  );
+
+  $$FeePaymentsTableProcessedTableManager get feePaymentsRefs {
+    final manager = $$FeePaymentsTableTableManager(
+      $_db,
+      $_db.feePayments,
+    ).filter((f) => f.voucherId.id.sqlEquals($_itemColumn<int>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_feePaymentsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$FeeVouchersTableFilterComposer
@@ -9198,6 +9616,31 @@ class $$FeeVouchersTableFilterComposer
           ),
     );
     return composer;
+  }
+
+  Expression<bool> feePaymentsRefs(
+    Expression<bool> Function($$FeePaymentsTableFilterComposer f) f,
+  ) {
+    final $$FeePaymentsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.feePayments,
+      getReferencedColumn: (t) => t.voucherId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FeePaymentsTableFilterComposer(
+            $db: $db,
+            $table: $db.feePayments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
   }
 }
 
@@ -9377,6 +9820,31 @@ class $$FeeVouchersTableAnnotationComposer
     );
     return composer;
   }
+
+  Expression<T> feePaymentsRefs<T extends Object>(
+    Expression<T> Function($$FeePaymentsTableAnnotationComposer a) f,
+  ) {
+    final $$FeePaymentsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.feePayments,
+      getReferencedColumn: (t) => t.voucherId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FeePaymentsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.feePayments,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$FeeVouchersTableTableManager
@@ -9392,7 +9860,7 @@ class $$FeeVouchersTableTableManager
           $$FeeVouchersTableUpdateCompanionBuilder,
           (FeeVoucher, $$FeeVouchersTableReferences),
           FeeVoucher,
-          PrefetchHooks Function({bool studentId})
+          PrefetchHooks Function({bool studentId, bool feePaymentsRefs})
         > {
   $$FeeVouchersTableTableManager(_$AppDatabase db, $FeeVouchersTable table)
     : super(
@@ -9477,7 +9945,360 @@ class $$FeeVouchersTableTableManager
                 ),
               )
               .toList(),
-          prefetchHooksCallback: ({studentId = false}) {
+          prefetchHooksCallback:
+              ({studentId = false, feePaymentsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [
+                    if (feePaymentsRefs) db.feePayments,
+                  ],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (studentId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.studentId,
+                            referencedTable: $$FeeVouchersTableReferences
+                                ._studentIdTable(db),
+                            referencedColumn: $$FeeVouchersTableReferences
+                                ._studentIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (feePaymentsRefs)
+                        await $_getPrefetchedData<
+                          FeeVoucher,
+                          $FeeVouchersTable,
+                          FeePaymentRow
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FeeVouchersTableReferences
+                              ._feePaymentsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FeeVouchersTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).feePaymentsRefs,
+                          referencedItemsForCurrentItem:
+                              (item, referencedItems) => referencedItems.where(
+                                (e) => e.voucherId == item.id,
+                              ),
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$FeeVouchersTableProcessedTableManager =
+    ProcessedTableManager<
+      _$AppDatabase,
+      $FeeVouchersTable,
+      FeeVoucher,
+      $$FeeVouchersTableFilterComposer,
+      $$FeeVouchersTableOrderingComposer,
+      $$FeeVouchersTableAnnotationComposer,
+      $$FeeVouchersTableCreateCompanionBuilder,
+      $$FeeVouchersTableUpdateCompanionBuilder,
+      (FeeVoucher, $$FeeVouchersTableReferences),
+      FeeVoucher,
+      PrefetchHooks Function({bool studentId, bool feePaymentsRefs})
+    >;
+typedef $$FeePaymentsTableCreateCompanionBuilder =
+    FeePaymentsCompanion Function({
+      Value<int> id,
+      required int voucherId,
+      required String receiptNo,
+      required String date,
+      required int amount,
+      Value<String> note,
+    });
+typedef $$FeePaymentsTableUpdateCompanionBuilder =
+    FeePaymentsCompanion Function({
+      Value<int> id,
+      Value<int> voucherId,
+      Value<String> receiptNo,
+      Value<String> date,
+      Value<int> amount,
+      Value<String> note,
+    });
+
+final class $$FeePaymentsTableReferences
+    extends BaseReferences<_$AppDatabase, $FeePaymentsTable, FeePaymentRow> {
+  $$FeePaymentsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $FeeVouchersTable _voucherIdTable(_$AppDatabase db) =>
+      db.feeVouchers.createAlias('fee_payments__voucher_id__fee_vouchers__id');
+
+  $$FeeVouchersTableProcessedTableManager get voucherId {
+    final $_column = $_itemColumn<int>('voucher_id')!;
+
+    final manager = $$FeeVouchersTableTableManager(
+      $_db,
+      $_db.feeVouchers,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_voucherIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$FeePaymentsTableFilterComposer
+    extends Composer<_$AppDatabase, $FeePaymentsTable> {
+  $$FeePaymentsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get receiptNo => $composableBuilder(
+    column: $table.receiptNo,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$FeeVouchersTableFilterComposer get voucherId {
+    final $$FeeVouchersTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.voucherId,
+      referencedTable: $db.feeVouchers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FeeVouchersTableFilterComposer(
+            $db: $db,
+            $table: $db.feeVouchers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FeePaymentsTableOrderingComposer
+    extends Composer<_$AppDatabase, $FeePaymentsTable> {
+  $$FeePaymentsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get receiptNo => $composableBuilder(
+    column: $table.receiptNo,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get date => $composableBuilder(
+    column: $table.date,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get amount => $composableBuilder(
+    column: $table.amount,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get note => $composableBuilder(
+    column: $table.note,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$FeeVouchersTableOrderingComposer get voucherId {
+    final $$FeeVouchersTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.voucherId,
+      referencedTable: $db.feeVouchers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FeeVouchersTableOrderingComposer(
+            $db: $db,
+            $table: $db.feeVouchers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FeePaymentsTableAnnotationComposer
+    extends Composer<_$AppDatabase, $FeePaymentsTable> {
+  $$FeePaymentsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get receiptNo =>
+      $composableBuilder(column: $table.receiptNo, builder: (column) => column);
+
+  GeneratedColumn<String> get date =>
+      $composableBuilder(column: $table.date, builder: (column) => column);
+
+  GeneratedColumn<int> get amount =>
+      $composableBuilder(column: $table.amount, builder: (column) => column);
+
+  GeneratedColumn<String> get note =>
+      $composableBuilder(column: $table.note, builder: (column) => column);
+
+  $$FeeVouchersTableAnnotationComposer get voucherId {
+    final $$FeeVouchersTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.voucherId,
+      referencedTable: $db.feeVouchers,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FeeVouchersTableAnnotationComposer(
+            $db: $db,
+            $table: $db.feeVouchers,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FeePaymentsTableTableManager
+    extends
+        RootTableManager<
+          _$AppDatabase,
+          $FeePaymentsTable,
+          FeePaymentRow,
+          $$FeePaymentsTableFilterComposer,
+          $$FeePaymentsTableOrderingComposer,
+          $$FeePaymentsTableAnnotationComposer,
+          $$FeePaymentsTableCreateCompanionBuilder,
+          $$FeePaymentsTableUpdateCompanionBuilder,
+          (FeePaymentRow, $$FeePaymentsTableReferences),
+          FeePaymentRow,
+          PrefetchHooks Function({bool voucherId})
+        > {
+  $$FeePaymentsTableTableManager(_$AppDatabase db, $FeePaymentsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FeePaymentsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FeePaymentsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FeePaymentsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                Value<int> voucherId = const Value.absent(),
+                Value<String> receiptNo = const Value.absent(),
+                Value<String> date = const Value.absent(),
+                Value<int> amount = const Value.absent(),
+                Value<String> note = const Value.absent(),
+              }) => FeePaymentsCompanion(
+                id: id,
+                voucherId: voucherId,
+                receiptNo: receiptNo,
+                date: date,
+                amount: amount,
+                note: note,
+              ),
+          createCompanionCallback:
+              ({
+                Value<int> id = const Value.absent(),
+                required int voucherId,
+                required String receiptNo,
+                required String date,
+                required int amount,
+                Value<String> note = const Value.absent(),
+              }) => FeePaymentsCompanion.insert(
+                id: id,
+                voucherId: voucherId,
+                receiptNo: receiptNo,
+                date: date,
+                amount: amount,
+                note: note,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FeePaymentsTable, FeePaymentRow>(table),
+                  $$FeePaymentsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({voucherId = false}) {
             return PrefetchHooks(
               db: db,
               explicitlyWatchedTables: [],
@@ -9497,14 +10318,14 @@ class $$FeeVouchersTableTableManager
                       dynamic
                     >
                   >(state) {
-                    if (studentId) {
+                    if (voucherId) {
                       state = state.withJoin(
                         currentTable: table,
-                        currentColumn: table.studentId,
-                        referencedTable: $$FeeVouchersTableReferences
-                            ._studentIdTable(db),
-                        referencedColumn: $$FeeVouchersTableReferences
-                            ._studentIdTable(db)
+                        currentColumn: table.voucherId,
+                        referencedTable: $$FeePaymentsTableReferences
+                            ._voucherIdTable(db),
+                        referencedColumn: $$FeePaymentsTableReferences
+                            ._voucherIdTable(db)
                             .id,
                       ) as T;
                     }
@@ -9520,19 +10341,19 @@ class $$FeeVouchersTableTableManager
       );
 }
 
-typedef $$FeeVouchersTableProcessedTableManager =
+typedef $$FeePaymentsTableProcessedTableManager =
     ProcessedTableManager<
       _$AppDatabase,
-      $FeeVouchersTable,
-      FeeVoucher,
-      $$FeeVouchersTableFilterComposer,
-      $$FeeVouchersTableOrderingComposer,
-      $$FeeVouchersTableAnnotationComposer,
-      $$FeeVouchersTableCreateCompanionBuilder,
-      $$FeeVouchersTableUpdateCompanionBuilder,
-      (FeeVoucher, $$FeeVouchersTableReferences),
-      FeeVoucher,
-      PrefetchHooks Function({bool studentId})
+      $FeePaymentsTable,
+      FeePaymentRow,
+      $$FeePaymentsTableFilterComposer,
+      $$FeePaymentsTableOrderingComposer,
+      $$FeePaymentsTableAnnotationComposer,
+      $$FeePaymentsTableCreateCompanionBuilder,
+      $$FeePaymentsTableUpdateCompanionBuilder,
+      (FeePaymentRow, $$FeePaymentsTableReferences),
+      FeePaymentRow,
+      PrefetchHooks Function({bool voucherId})
     >;
 typedef $$ExamsTableCreateCompanionBuilder = ExamsCompanion Function({
   Value<int> id,
@@ -10775,6 +11596,8 @@ class $AppDatabaseManager {
       $$FeeStructureTableTableManager(_db, _db.feeStructure);
   $$FeeVouchersTableTableManager get feeVouchers =>
       $$FeeVouchersTableTableManager(_db, _db.feeVouchers);
+  $$FeePaymentsTableTableManager get feePayments =>
+      $$FeePaymentsTableTableManager(_db, _db.feePayments);
   $$ExamsTableTableManager get exams =>
       $$ExamsTableTableManager(_db, _db.exams);
   $$SubjectsTableTableManager get subjects =>

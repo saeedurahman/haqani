@@ -136,6 +136,16 @@ None.
   - **Performance:** tested with 1,500 students, 30,000 attendance rows, 7,500 vouchers, 9,000 marks. All main queries under about 170 ms (in-memory DB). No indexes were needed.
   - 38 new tests. Total 422, all pass. `flutter analyze`: no issues.
 
+- 2026-10-23 | Fee payments table (follow-up to Module 6):
+  - New table `fee_payments` (id, voucherId, receiptNo, date, amount, note). Every payment has its own row and receipt number; brothers and sisters paying together share one receipt number (one row per child).
+  - **Migration (database version 1 -> 2):** money already taken on a voucher becomes one payment with that voucher's receipt number and date. The old `receipt_no` on vouchers is cleared (column kept, unused). Totals, paid amounts and status are not changed. Receipt numbers keep counting up from the biggest existing one.
+  - **Collect fee:** adds a payment row and updates the voucher; a second payment on the same voucher gets a new receipt number and no longer replaces the first. If anything is refused nothing is saved and no number is used.
+  - **Reprint any receipt:** an old receipt shows its own date, the amount received on that day, and the paid/balance as they were after that payment.
+  - **Fee history and vouchers list:** a voucher with one payment shows one "Receipt N" button; with more it shows "N receipts" with a menu (receipt number, date, amount).
+  - **Reports and student page:** student history report and the student Fees tab list every receipt number ("4, 8") and the date of the last payment. Dashboard "Fees collected this month" now adds up the payments taken in that month (before, it used the voucher's last payment date).
+  - **Backup/restore:** needs no change (the table is inside the database file). A backup made before this change can still be restored; it is upgraded when the app restarts. Backups made after this change cannot be opened by the older app (the existing "newer version" message).
+  - Tests: migration test with a version 1 file (payments copied, nothing lost, run twice, old receipts print, numbering continues), repository tests, dashboard, student history, receipt links widget, backup restore of an older version. Total 436, all pass. `flutter analyze`: no issues.
+
 ## Known Issues
 - Classes page: reorder is hidden while a search is active. Teachers list stays empty until the Staff module adds staff.
 - Students: Admissions (module 4) will add the automatic admission number flow and certificate; the form here only suggests the next number.
@@ -144,7 +154,7 @@ None.
 - Admissions: issuing a certificate does not mark the student as left. Use Mark as Left on the student page.
 - Attendance: the per-student note column exists in the database and is kept when saving, but there is no screen to type a note yet.
 - Attendance: PDF/CSV export of these reports comes with the Reports module.
-- Fees: the database keeps one receipt number and one date per voucher (no separate payments table). If a voucher is paid in two parts, the second receipt replaces the first receipt number on that voucher, and the dashboard counts the whole paid amount in the month of the last payment. The old receipt can no longer be printed again. Adding a payments table would fix this; ask before changing the schema.
+- Fees: the note of a payment is stored (`fee_payments.note`) but there is no box to type it on the Collect screen yet.
 - Fees: the receipt screen (PDF preview, print, save) could not be run in the cloud; the PDF itself was checked.
 - Fees: paid/unpaid lists and defaulters for all classes come with the Reports module; here they are per class and month.
 - Staff: salary is only stored and shown. No salary slips, attendance or payroll (not in the module list).
@@ -163,7 +173,6 @@ None.
 - Backup: attached documents are included in the zip; a very large documents folder makes backups big and slow.
 - Settings: the logo picker, "Open Folder", the PDFs with a logo and the Windows title/file info could not be run or built in the cloud (no Windows). The owner must check them.
 - Performance numbers are from an in-memory database in the cloud, not from a real Windows PC.
-- Fees: the open question about a payments table (see the Fees issue above) is still waiting for your decision.
 - Branch is `claude/focused-wright-p1vttv` (set by the environment), not `module/base-setup`. No PR opened.
 
 ## Owner Must Test Manually (Windows)
@@ -300,6 +309,13 @@ None.
 6. Dashboard: all six cards open their pages; the backup chip opens Backup. Numbers match the real data.
 7. The window title reads "Rozatul Atfal - School Management" and opens at a good size.
 8. With a school of 1000+ students, check lists, search, attendance and the dashboard feel quick.
+
+### Fee payments table
+1. First open the new version with your real school database (copy it first!). Fees > Collect Fee: old receipts still open from the voucher list/history and show the right amounts and dates.
+2. Take a part payment on a voucher, then another day take the rest: two receipts, numbers different. Fee history shows "2 receipts"; open both from the menu. The first one still shows the part amount and the balance at that time.
+3. Collect for two sisters together: one receipt number, both on one receipt. Print it again from either sister's history.
+4. Dashboard "Fees collected this month" equals the sum of the payments received this month.
+5. Restore an old backup (made before this update) in Backup: restart the app and check fee history and receipts are all there.
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

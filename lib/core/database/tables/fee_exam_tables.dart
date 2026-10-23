@@ -13,7 +13,11 @@ class FeeStructure extends Table {
 
 class FeeVouchers extends Table {
   IntColumn get id => integer().autoIncrement()();
+
+  /// Old column, always empty now: receipts live in [FeePayments].
   TextColumn get receiptNo => text()();
+
+  /// Day the voucher was made.
   TextColumn get date => text()();
   IntColumn get studentId => integer().references(Students, #id)();
 
@@ -30,6 +34,18 @@ class FeeVouchers extends Table {
 
   /// `paid`, `partial` or `unpaid`.
   TextColumn get status => text().withDefault(const Constant('unpaid'))();
+}
+
+/// One payment against a voucher. Brothers and sisters paying together share
+/// a receipt number (one payment row per voucher).
+@DataClassName('FeePaymentRow')
+class FeePayments extends Table {
+  IntColumn get id => integer().autoIncrement()();
+  IntColumn get voucherId => integer().references(FeeVouchers, #id)();
+  TextColumn get receiptNo => text()();
+  TextColumn get date => text()();
+  IntColumn get amount => integer()();
+  TextColumn get note => text().withDefault(const Constant(''))();
 }
 
 class Exams extends Table {

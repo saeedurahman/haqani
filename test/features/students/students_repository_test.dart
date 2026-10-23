@@ -221,8 +221,8 @@ void main() {
         AttendanceCompanion.insert(studentId: a, date: '2026-05-02', status: 'absent'));
     await db.into(db.attendance).insert(
         AttendanceCompanion.insert(studentId: b, date: '2026-05-01', status: 'present'));
-    await db.into(db.feeVouchers).insert(FeeVouchersCompanion.insert(
-          receiptNo: 'R1',
+    final voucher = await db.into(db.feeVouchers).insert(FeeVouchersCompanion.insert(
+          receiptNo: '',
           date: '2026-05-03',
           studentId: a,
           forMonth: '2026-05',
@@ -230,6 +230,10 @@ void main() {
           paidAmount: const Value(1000),
           status: const Value('partial'),
         ));
+    await db.into(db.feePayments).insert(FeePaymentsCompanion.insert(
+        voucherId: voucher, receiptNo: '4', date: '2026-05-04', amount: 600));
+    await db.into(db.feePayments).insert(FeePaymentsCompanion.insert(
+        voucherId: voucher, receiptNo: '8', date: '2026-05-20', amount: 400));
     final exam = await db.into(db.exams).insert(
           ExamsCompanion.insert(name: 'Annual', classId: classId),
         );
@@ -249,6 +253,8 @@ void main() {
         reason: 'newest day first');
     expect(history.countAttendance('present'), 1);
     expect(history.fees.single.due, 500);
+    expect(history.fees.single.receiptNo, '4, 8');
+    expect(history.fees.single.date, DateTime(2026, 5, 20), reason: 'day of the last payment');
     expect(history.results.single.examName, 'Annual');
     expect(history.results.single.totalMarks, 50);
     expect((await repo.getHistory(b)).fees, isEmpty);

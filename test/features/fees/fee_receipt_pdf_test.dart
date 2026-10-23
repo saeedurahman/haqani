@@ -8,7 +8,6 @@ FeeVoucher _voucher(String name, int id, {int paid = 1500, int misc = 0, int ann
   final total = 1500 + annual + misc;
   return FeeVoucher(
     id: id,
-    receiptNo: '12',
     date: DateTime(2026, 5, 10),
     student: FeeStudent(
       id: id,

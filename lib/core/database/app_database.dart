@@ -24,6 +24,7 @@ part 'app_database.g.dart';
     Attendance,
     FeeStructure,
     FeeVouchers,
+    FeePayments,
     Exams,
     Subjects,
     Results,
@@ -37,10 +38,26 @@ class AppDatabase extends _$AppDatabase {
   AppDatabase.forTesting(super.executor);
 
   @override
-  int get schemaVersion => 1;
+  int get schemaVersion => 2;
+
+  /// Version 2: every payment gets its own row. Money already taken on a
+  /// voucher becomes one payment with the voucher's receipt number and date,
+  /// then the old receipt number is cleared from the voucher.
+  Future<void> _addFeePayments(Migrator m) async {
+    await m.createTable(feePayments);
+    await customStatement(
+      'INSERT INTO fee_payments (voucher_id, receipt_no, date, amount, note) '
+      "SELECT id, receipt_no, date, paid_amount, '' FROM fee_vouchers "
+      'WHERE paid_amount > 0 ORDER BY id',
+    );
+    await customStatement("UPDATE fee_vouchers SET receipt_no = ''");
+  }
 
   @override
   MigrationStrategy get migration => MigrationStrategy(
+    onUpgrade: (m, from, to) async {
+      if (from < 2) await _addFeePayments(m);
+    },
     beforeOpen: (details) async {
       await customStatement('PRAGMA foreign_keys = ON');
     },

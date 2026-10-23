@@ -203,10 +203,8 @@ class FeesRepositoryImpl implements FeesRepository {
     if (real.isEmpty) throw const FeesException('Enter an amount to receive.');
 
     final iso = AppDateUtils.toIso(date);
-    final received = <int, int>{};
-    late final String receiptNo;
-    final ids = await _db.transaction(() async {
-      receiptNo = await _nextReceiptNo();
+    final receiptNo = await _db.transaction(() async {
+      final no = await _nextReceiptNo();
       for (final p in real) {
         final v = await _dao.voucherById(p.voucherId);
         if (v == null) throw const FeesException('A voucher was not found.');
@@ -230,26 +228,46 @@ class FeesRepositoryImpl implements FeesRepository {
             total: Value(total),
             paidAmount: Value(paid),
             status: Value(FeeStatus.of(total, paid)),
-            receiptNo: Value(receiptNo),
-            date: Value(iso),
           ),
         );
-        received[v.id] = p.amount;
+        await _dao.insertPayment(FeePaymentsCompanion.insert(
+          voucherId: v.id,
+          receiptNo: no,
+          date: iso,
+          amount: p.amount,
+          note: Value(p.note.trim()),
+        ));
       }
-      return received.keys.toList();
+      return no;
     });
-
-    final vouchers = <d.FeeVoucher>[
-      for (final id in ids) (await _dao.voucherById(id))!,
-    ];
-    return _buildReceipt(receiptNo, vouchers, received);
+    return (await getReceipt(receiptNo))!;
   }
 
   @override
   Future<FeeReceipt?> getReceipt(String receiptNo) async {
-    final vouchers = await _dao.vouchersOfReceipt(receiptNo);
-    if (vouchers.isEmpty) return null;
-    return _buildReceipt(receiptNo, vouchers, const {});
+    final rows = await _dao.paymentsOfReceipt(receiptNo);
+    if (rows.isEmpty) return null;
+    final vouchers = await _toVouchers([
+      for (final id in {for (final r in rows) r.voucherId}) (await _dao.voucherById(id))!,
+    ]);
+    final byId = {for (final v in vouchers) v.id: v};
+    final lines = <ReceiptLine>[];
+    for (final row in rows) {
+      final v = byId[row.voucherId]!;
+      // Money paid on this voucher up to and including this payment.
+      final paidSoFar =
+          v.payments.where((p) => p.id <= row.id).fold<int>(0, (sum, p) => sum + p.amount);
+      lines.add(ReceiptLine(voucher: v.withPaid(paidSoFar), receivedNow: row.amount));
+    }
+    return FeeReceipt(
+      receiptNo: receiptNo,
+      date: DateTime.parse(rows.first.date),
+      schoolName: await _setting(AppConstants.settingSchoolName) ?? AppStrings.defaultSchoolName,
+      schoolAddress: await _setting(AppConstants.settingSchoolAddress) ?? '',
+      schoolPhone: await _setting(AppConstants.settingSchoolPhone) ?? '',
+      logoPath: await _setting(AppConstants.settingLogoPath),
+      lines: lines,
+    );
   }
 
   Future<String> _nextReceiptNo() async {
@@ -259,25 +277,6 @@ class FeesRepositoryImpl implements FeesRepository {
       if (n != null && n > biggest) biggest = n;
     }
     return '${biggest + 1}';
-  }
-
-  Future<FeeReceipt> _buildReceipt(
-    String receiptNo,
-    List<d.FeeVoucher> vouchers,
-    Map<int, int> receivedNow,
-  ) async {
-    final converted = await _toVouchers(vouchers);
-    return FeeReceipt(
-      receiptNo: receiptNo,
-      date: converted.first.date,
-      schoolName: await _setting(AppConstants.settingSchoolName) ?? AppStrings.defaultSchoolName,
-      schoolAddress: await _setting(AppConstants.settingSchoolAddress) ?? '',
-      schoolPhone: await _setting(AppConstants.settingSchoolPhone) ?? '',
-      logoPath: await _setting(AppConstants.settingLogoPath),
-      lines: [
-        for (final v in converted) ReceiptLine(voucher: v, receivedNow: receivedNow[v.id]),
-      ],
-    );
   }
 
   Future<String?> _setting(String key) async {
@@ -318,11 +317,21 @@ class FeesRepositoryImpl implements FeesRepository {
     final labels = await _labels();
     final students = {for (final s in await _dao.studentsByIds(ids)) s.id: s};
     final latest = await _dao.latestMonthByStudent(ids);
+    final payments = <int, List<FeePayment>>{};
+    for (final p in await _dao.paymentsOfVouchers([for (final v in vouchers) v.id])) {
+      payments.putIfAbsent(p.voucherId, () => []).add(FeePayment(
+            id: p.id,
+            receiptNo: p.receiptNo,
+            date: DateTime.parse(p.date),
+            amount: p.amount,
+            note: p.note,
+          ));
+    }
     return [
       for (final v in vouchers)
         FeeVoucher(
           id: v.id,
-          receiptNo: v.receiptNo,
+          payments: payments[v.id] ?? const [],
           date: DateTime.parse(v.date),
           student: _feeStudent(students[v.studentId]!, labels),
           forMonth: v.forMonth,

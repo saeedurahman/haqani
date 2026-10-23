@@ -7,7 +7,7 @@ import '../tables/student_tables.dart';
 
 part 'fees_dao.g.dart';
 
-@DriftAccessor(tables: [FeeStructure, FeeVouchers, Students, SchoolClasses, Sections])
+@DriftAccessor(tables: [FeeStructure, FeeVouchers, FeePayments, Students, SchoolClasses, Sections])
 class FeesDao extends DatabaseAccessor<AppDatabase> with _$FeesDaoMixin {
   FeesDao(super.db);
 
@@ -99,19 +99,29 @@ class FeesDao extends DatabaseAccessor<AppDatabase> with _$FeesDaoMixin {
         .get();
   }
 
-  Future<List<FeeVoucher>> vouchersOfReceipt(String receiptNo) {
-    return (select(feeVouchers)
+  /// Payments of the given vouchers, oldest first.
+  Future<List<FeePaymentRow>> paymentsOfVouchers(List<int> voucherIds) {
+    if (voucherIds.isEmpty) return Future.value(const []);
+    return (select(feePayments)
+          ..where((t) => t.voucherId.isIn(voucherIds))
+          ..orderBy([(t) => OrderingTerm.asc(t.id)]))
+        .get();
+  }
+
+  /// Payments that share one receipt number.
+  Future<List<FeePaymentRow>> paymentsOfReceipt(String receiptNo) {
+    return (select(feePayments)
           ..where((t) => t.receiptNo.equals(receiptNo))
           ..orderBy([(t) => OrderingTerm.asc(t.id)]))
         .get();
   }
 
   Future<List<String>> allReceiptNos() async {
-    final query = selectOnly(feeVouchers, distinct: true)
-      ..addColumns([feeVouchers.receiptNo])
-      ..where(feeVouchers.receiptNo.equals('').not());
-    return [for (final r in await query.get()) r.read(feeVouchers.receiptNo)!];
+    final query = selectOnly(feePayments, distinct: true)..addColumns([feePayments.receiptNo]);
+    return [for (final r in await query.get()) r.read(feePayments.receiptNo)!];
   }
+
+  Future<void> insertPayment(FeePaymentsCompanion data) => into(feePayments).insert(data);
 
   Future<void> insertVoucher(FeeVouchersCompanion data) => into(feeVouchers).insert(data);
 
