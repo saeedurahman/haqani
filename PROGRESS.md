@@ -57,7 +57,7 @@ None.
 - 2026-10-23 | Module 4 Admissions + Leaving Certificate:
   - Admission register page: newest first, search by name/father/number, "admitted from/to" date range, empty/loading/error states.
   - New Admission form (same fields as the student form): admission number is automatic and read-only. The number is chosen inside the same database transaction as the save, so two admissions can never get the same number. Saves the student as active with class and section.
-  - School Leaving Certificate: opens from each row. Values are filled from school records (class, admission date, attended from/to, dues cleared from fee records, attendance %, last exam, next class as "promoted to") and every value can be changed. DOB shown in figures and in words. Live PDF preview with Print and Save/Share (printing package). Urdu names show correctly in the PDF (checked by rendering a sample).
+  - School Leaving Certificate: opens from each row. Values are filled from school records (class, admission date, attended from/to, dues cleared from fee records, attendance %, last exam, next class as "promoted to") and every value can be changed. DOB shown in figures and in words. Live PDF preview with Print and Save/Share (printing package). (Earlier note said Urdu names were correct in this PDF. That was wrong: they came out disconnected and backwards. Fixed, see "Urdu in PDFs".)
   - School name and address come from `app_settings` (keys `school_name`, `school_address`); defaults are used until the Settings module adds a screen.
   - Moved student-to-domain mapping into `students/data/student_mapper.dart` (shared). `PersonalSection` got an `autoAdmissionNo` option; `AppTextField` got `readOnly` and `helper`; `Student.withAdmissionNo`; `NumberWords` util.
   - 30 new tests (repository, 3 cubits, PDF builder, page flow, number words). Total 104, all pass. `flutter analyze`: no issues.
@@ -75,7 +75,7 @@ None.
   - **Vouchers tab:** class/section + month (up to next month). "Generate Vouchers" makes one unpaid voucher per active student: monthly fee, optional annual fee (checkbox), admission fee automatically in the student's admission month, and previous dues. Students who already have that month (or a later one) are skipped. Totals (billed/collected/pending), All/Unpaid/Partial/Paid filter with counts, search, and Receipt button to print again.
   - **Previous dues carry forward:** unpaid balance of the newest earlier voucher is added to the new voucher. The older voucher shows "Carried forward", so money is never counted twice.
   - **Collect Fee tab:** search by name, father name or ID. Brothers and sisters (same father CNIC, or same father name + phone) show together; tick who is paying, edit misc fee, discount and "Receive now" per student (partial payment allowed, cannot pass the balance). One receipt number for all (separate voucher rows). Students with nothing due have a "Create this month's voucher" button. Fee history of the student at the bottom.
-  - **Receipt (PDF, A5, print/save):** receipt no, date, registration no, student, class/section, month, monthly, annual, admission, misc, previous dues, discount, total, received now, paid so far, balance. Several students on one receipt. Urdu names work.
+  - **Receipt (PDF, A5, print/save):** receipt no, date, registration no, student, class/section, month, monthly, annual, admission, misc, previous dues, discount, total, received now, paid so far, balance. Several students on one receipt. (Urdu names were wrong here until the "Urdu in PDFs" fix.)
   - Receipt numbers are 1, 2, 3... and all steps run in one database transaction.
   - New shared `MonthSwitcher` and `MoneyField`. Dashboard "Fees collected this month" now shows real numbers.
   - 48 new tests (repository, 4 cubits, receipt PDF, page flow). Total 178, all pass. `flutter analyze`: no issues.
@@ -93,7 +93,7 @@ None.
   - **Enter Marks:** one grid per exam: students down, subjects across. Total, % and grade update while typing. A mark above the subject total turns red and blocks Save. Empty box = no mark. Everything is saved in one step, or nothing if one mark is wrong.
   - **Results tab:** students ordered by position (1st, 2nd, 3rd get gold/silver/bronze badges) with total, %, grade and Pass / Fail / Incomplete.
   - **Rules (default):** grade A+ 80+, A 70+, B 60+, C 50+, D 40+, E 33+, F below 33. Pass = total at least 33% AND every subject at least 33%. Absent / empty subject counts as 0 in the total, and the student is shown as Incomplete (no position) until every subject has marks. Equal totals share a position (1, 1, 3).
-  - **Result card (PDF, A4):** school, exam, student, class/section, subject table with grades, total, percentage, grade, position ("1st of 24"), result, signature lines. Print one card, or all cards of the class in one PDF. Urdu names work. A "Previous results" list shows the student's other exams.
+  - **Result card (PDF, A4):** school, exam, student, class/section, subject table with grades, total, percentage, grade, position ("1st of 24"), result, signature lines. Print one card, or all cards of the class in one PDF. (Urdu names were wrong here until the "Urdu in PDFs" fix.) A "Previous results" list shows the student's other exams.
   - Marks are stored in the existing `results` table (no schema change). Student detail > Results tab shows them too.
   - 51 new tests (calculator, repository, 4 cubits, PDF, page flow). Total 248, all pass. `flutter analyze`: no issues.
 - 2026-10-23 | Module 9 Reports:
@@ -151,7 +151,16 @@ None.
   - If a reprinted receipt has different notes on its rows, they are shown once each, joined with ". ".
   - Tests: cubit (note sent, cleared, kept on refusal), repository (saved, reprinted, empty), PDF with English and Urdu notes, page shows the box.
 
+- 2026-10-25 | Urdu in PDFs (bug fix):
+  - **The bug:** the `pdf` package does not join or reverse Arabic letters, so Urdu in every PDF came out as separate backwards letters. Earlier entries said Urdu names were correct in PDFs; that was wrong (the old check only looked at a sample that I did not read closely enough).
+  - **Fix:** new shared helper `core/utils/pdf_urdu_text.dart` (`PdfUrduText`). Any text with Arabic-script letters is drawn with Flutter's own text engine (correct joining, right-to-left, Noto Naskh Arabic, Inter for English letters and digits in the same line), saved as a 3x PNG and put in the PDF as an image. English/number-only text stays normal PDF text. Mixed text ("Ali S/O زاہد خان") is one picture for the whole line; the first letter decides left-to-right or right-to-left. The sentence on the leaving certificate wraps inside the page width.
+  - **How it runs:** each PDF is built twice only when it contains Urdu (pass 1 finds the strings, they are drawn once each, pass 2 uses the pictures). English-only PDFs are built once. Pictures are cached per string for that one PDF (a 400-row report with 40 different names draws 40 pictures).
+  - **Used by:** leaving certificate, fee receipt (and its note), result card (one and all), report PDFs (header, stats, headings, table cells). Urdu table cells and certificate fields sit on the right; sizes, table layouts and page counts are unchanged. Urdu is drawn 20% bigger than its font size because Naskh letters look small beside English.
+  - **Checked visually:** I rendered sample PDFs of all four documents to PNG (pdftoppm) and looked at them: letters joined, in the right order ("زاہد خان", "عائشہ خان", "روضۃ الاطفال"), mixed English/Urdu lines correct, layouts intact.
+  - Tests: helper (script detection, direction, picture has ink and right size, one picture per string, wrapping, one build vs two builds), each PDF builder with Urdu (pictures embedded; English-only has none), long report speed. `flutter analyze`: no issues.
+
 ## Known Issues
+- PDFs: Urdu parts are pictures (sharp when printed), so they cannot be copied or searched inside the PDF. English text is real text.
 - Classes page: reorder is hidden while a search is active. Teachers list stays empty until the Staff module adds staff.
 - Students: Admissions (module 4) will add the automatic admission number flow and certificate; the form here only suggests the next number.
 - Students: opening attached files uses the Windows default app; untested on Windows.
@@ -321,6 +330,12 @@ None.
 4. Dashboard "Fees collected this month" equals the sum of the payments received this month.
 5. Restore an old backup (made before this update) in Backup: restart the app and check fee history and receipts are all there.
 6. Fee receipt note: on Collect Fee type a note (also Urdu) and press Receive Fee: the receipt shows "Note: ...". Open the same receipt again from the history: the note is still there. The box is empty for the next payment.
+
+### Urdu in PDFs
+1. Open a student with an Urdu name (and an Urdu father name). Print a fee receipt, a result card (one and all), a leaving certificate and a report that lists students: in every PDF the name must be joined letters, reading right to left, same as on screen.
+2. Set the school name and address in Urdu in Settings and print again: the header is joined and centred.
+3. English names must look as before; check page counts and that nothing is cut off at the edges of tables.
+4. Print a long report (many Urdu names): it should still open in a few seconds. Text in the PDF is now a picture for Urdu parts, so Urdu cannot be selected or searched in the PDF (English can).
 
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.

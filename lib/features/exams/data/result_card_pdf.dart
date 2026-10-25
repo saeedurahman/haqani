@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
 import '../../../core/utils/pdf_school_header.dart';
+import '../../../core/utils/pdf_urdu_text.dart';
 import '../domain/result_calculator.dart';
 import '../domain/result_card.dart';
 import '../domain/result_card_pdf_service.dart';
@@ -34,6 +35,10 @@ class ResultCardPdf implements ResultCardPdfService {
   Future<Uint8List> build(List<ResultCard> cards) async {
     await _loadFonts();
     final logo = await loadPdfLogo(cards.first.school.logoPath);
+    return PdfUrduText.run((urdu) => _render(urdu, cards, logo));
+  }
+
+  Future<Uint8List> _render(PdfUrduText urdu, List<ResultCard> cards, pw.ImageProvider? logo) {
     final doc = pw.Document(
       title: cards.length == 1
           ? 'Result Card - ${cards.first.result.student.name}'
@@ -51,7 +56,7 @@ class ResultCardPdf implements ResultCardPdfService {
             child: pw.Container(
               decoration: pw.BoxDecoration(border: pw.Border.all(color: _accent, width: 0.8)),
               padding: const pw.EdgeInsets.symmetric(horizontal: 30, vertical: 26),
-              child: _content(card, logo),
+              child: _content(urdu, card, logo),
             ),
           ),
         ),
@@ -60,13 +65,14 @@ class ResultCardPdf implements ResultCardPdfService {
     return doc.save();
   }
 
-  pw.Widget _content(ResultCard c, pw.ImageProvider? logo) {
+  pw.Widget _content(PdfUrduText urdu, ResultCard c, pw.ImageProvider? logo) {
     final r = c.result;
     final date = c.exam.date;
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
         pdfCenteredSchoolHeader(
+          urdu: urdu,
           name: c.school.name,
           address: c.school.address,
           phone: c.school.phone,
@@ -93,8 +99,9 @@ class ResultCardPdf implements ResultCardPdfService {
         ),
         pw.SizedBox(height: 6),
         pw.Center(
-          child: pw.Text(
+          child: urdu.text(
             date == null ? c.exam.name : '${c.exam.name}  -  ${AppDateUtils.toDisplay(date)}',
+            textAlign: pw.TextAlign.center,
             style: pw.TextStyle(fontSize: 12, fontWeight: pw.FontWeight.bold, color: _ink),
           ),
         ),
@@ -109,8 +116,8 @@ class ResultCardPdf implements ResultCardPdfService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    _info('Student name', r.student.name, bold: true),
-                    _info('Father name', r.student.fatherName),
+                    _info(urdu, 'Student name', r.student.name, bold: true),
+                    _info(urdu, 'Father name', r.student.fatherName),
                   ],
                 ),
               ),
@@ -118,8 +125,8 @@ class ResultCardPdf implements ResultCardPdfService {
                 child: pw.Column(
                   crossAxisAlignment: pw.CrossAxisAlignment.start,
                   children: [
-                    _info('Admission No', r.student.admissionNo),
-                    _info('Class / Section', c.classLabel),
+                    _info(urdu, 'Admission No', r.student.admissionNo),
+                    _info(urdu, 'Class / Section', c.classLabel),
                   ],
                 ),
               ),
@@ -127,7 +134,7 @@ class ResultCardPdf implements ResultCardPdfService {
           ),
         ),
         pw.SizedBox(height: 16),
-        _marksTable(c),
+        _marksTable(urdu, c),
         pw.SizedBox(height: 16),
         _summary(c),
         pw.Spacer(),
@@ -144,13 +151,14 @@ class ResultCardPdf implements ResultCardPdfService {
     );
   }
 
-  pw.Widget _marksTable(ResultCard c) {
+  pw.Widget _marksTable(PdfUrduText urdu, ResultCard c) {
     pw.Widget cell(String text, {bool header = false, bool bold = false, pw.Alignment? align}) {
       return pw.Container(
         alignment: align ?? pw.Alignment.centerLeft,
         padding: const pw.EdgeInsets.symmetric(horizontal: 8, vertical: 6),
-        child: pw.Text(
+        child: urdu.text(
           text,
+          fill: true,
           style: pw.TextStyle(
             fontSize: 11,
             fontWeight: header || bold ? pw.FontWeight.bold : pw.FontWeight.normal,
@@ -243,14 +251,14 @@ class ResultCardPdf implements ResultCardPdfService {
     );
   }
 
-  pw.Widget _info(String label, String value, {bool bold = false}) {
+  pw.Widget _info(PdfUrduText urdu, String label, String value, {bool bold = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 5),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(label, style: const pw.TextStyle(fontSize: 9, color: _muted)),
-          pw.Text(
+          urdu.text(
             value.trim().isEmpty ? '-' : value,
             style: pw.TextStyle(
               fontSize: 12,

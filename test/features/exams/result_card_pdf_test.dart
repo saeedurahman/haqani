@@ -6,8 +6,11 @@ import 'package:haqani/features/exams/domain/exam_models.dart';
 import 'package:haqani/features/exams/domain/result_calculator.dart';
 import 'package:haqani/features/exams/domain/result_card.dart';
 
+import '../../support/load_fonts.dart';
+
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadAppFonts);
 
   const subjects = [
     Subject(id: 1, classId: 1, name: 'English'),
@@ -15,9 +18,18 @@ void main() {
     Subject(id: 3, classId: 1, name: 'Math', totalMarks: 50),
   ];
 
-  List<ResultCard> cards(List<StudentMarks> students) {
+  List<ResultCard> cards(
+    List<StudentMarks> students, {
+    String school = 'Rozatul Atfal',
+  }) {
     final sheet = MarksSheet(
-      exam: Exam(id: 1, name: 'Annual 2026', classId: 1, className: 'Class 1', date: DateTime(2026, 5, 20)),
+      exam: Exam(
+        id: 1,
+        name: 'Annual 2026',
+        classId: 1,
+        className: 'Class 1',
+        date: DateTime(2026, 5, 20),
+      ),
       subjects: subjects,
       students: students,
     );
@@ -25,7 +37,10 @@ void main() {
     return [
       for (final r in results)
         ResultCard.from(
-          school: const SchoolInfo(name: 'Rozatul Atfal', address: 'Iqra Schools Foundation, Lahore'),
+          school: SchoolInfo(
+            name: school,
+            address: 'Iqra Schools Foundation, Lahore',
+          ),
           sheet: sheet,
           result: r,
           all: results,
@@ -52,18 +67,35 @@ void main() {
     final bytes = await ResultCardPdf().build(cards([ayesha]));
 
     expect(String.fromCharCodes(bytes.take(5)), '%PDF-');
-    expect(RegExp(r'/Type\s*/Page\b').allMatches(String.fromCharCodes(bytes)).length, 1);
+    expect(
+      RegExp(r'/Type\s*/Page\b').allMatches(String.fromCharCodes(bytes)).length,
+      1,
+    );
   });
 
   test('builds one page per student, including incomplete results', () async {
     final bytes = await ResultCardPdf().build(cards([ayesha, ali]));
 
-    expect(RegExp(r'/Type\s*/Page\b').allMatches(String.fromCharCodes(bytes)).length, 2);
+    expect(
+      RegExp(r'/Type\s*/Page\b').allMatches(String.fromCharCodes(bytes)).length,
+      2,
+    );
+  });
+
+  test('Urdu names are drawn as pictures on every card', () async {
+    final urdu = String.fromCharCodes(
+      await ResultCardPdf().build(cards([ayesha, ali], school: 'روضۃ الاطفال')),
+    );
+
+    expect(RegExp(r'/Type\s*/Page\b').allMatches(urdu).length, 2);
+    expect(RegExp('/Subtype/Image').allMatches(urdu).length, greaterThan(4));
   });
 
   test('writes a sample file for visual checking when asked', () async {
     final path = Platform.environment['CARD_SAMPLE_PATH'];
     if (path == null) return;
-    File(path).writeAsBytesSync(await ResultCardPdf().build(cards([ayesha, ali])));
+    File(path).writeAsBytesSync(
+      await ResultCardPdf().build(cards([ayesha, ali], school: 'روضۃ الاطفال')),
+    );
   });
 }

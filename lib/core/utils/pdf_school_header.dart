@@ -3,6 +3,8 @@ import 'dart:io';
 import 'package:pdf/pdf.dart';
 import 'package:pdf/widgets.dart' as pw;
 
+import 'pdf_urdu_text.dart';
+
 /// True if the bytes start like a PNG or a JPG picture.
 bool looksLikePicture(List<int> bytes) {
   final png = bytes.length > 4 && bytes[0] == 0x89 && bytes[1] == 0x50 && bytes[2] == 0x4E && bytes[3] == 0x47;
@@ -27,6 +29,7 @@ Future<pw.ImageProvider?> loadPdfLogo(String? path) async {
 /// School name, address and phone in the middle of the page, with the logo on
 /// the left when there is one. Used on the top of receipts, certificates and cards.
 pw.Widget pdfCenteredSchoolHeader({
+  required PdfUrduText urdu,
   required String name,
   String address = '',
   String phone = '',
@@ -40,7 +43,7 @@ pw.Widget pdfCenteredSchoolHeader({
   final text = pw.Column(
     mainAxisSize: pw.MainAxisSize.min,
     children: [
-      pw.Text(
+      urdu.text(
         name,
         textAlign: pw.TextAlign.center,
         style: pw.TextStyle(fontSize: nameSize, fontWeight: pw.FontWeight.bold, color: nameColor),
@@ -48,7 +51,7 @@ pw.Widget pdfCenteredSchoolHeader({
       if (details.isNotEmpty)
         pw.Padding(
           padding: const pw.EdgeInsets.only(top: 3),
-          child: pw.Text(
+          child: urdu.text(
             details,
             textAlign: pw.TextAlign.center,
             style: pw.TextStyle(fontSize: nameSize * 0.43, color: detailColor),

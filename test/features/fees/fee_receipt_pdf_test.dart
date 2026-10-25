@@ -4,7 +4,16 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:haqani/features/fees/data/fee_receipt_pdf.dart';
 import 'package:haqani/features/fees/domain/fee_models.dart';
 
-FeeVoucher _voucher(String name, int id, {int paid = 1500, int misc = 0, int annual = 0}) {
+import '../../support/load_fonts.dart';
+
+FeeVoucher _voucher(
+  String name,
+  int id, {
+  int paid = 1500,
+  int misc = 0,
+  int annual = 0,
+  String classLabel = 'Class 1 - A',
+}) {
   final total = 1500 + annual + misc;
   return FeeVoucher(
     id: id,
@@ -14,7 +23,7 @@ FeeVoucher _voucher(String name, int id, {int paid = 1500, int misc = 0, int ann
       name: name,
       admissionNo: '$id',
       registrationNo: 'R-$id',
-      classLabel: 'Class 1 - A',
+      classLabel: classLabel,
     ),
     forMonth: '2026-05',
     monthlyFee: 1500,
@@ -28,6 +37,7 @@ FeeVoucher _voucher(String name, int id, {int paid = 1500, int misc = 0, int ann
 
 void main() {
   TestWidgetsFlutterBinding.ensureInitialized();
+  setUpAll(loadAppFonts);
 
   FeeReceipt receipt(List<FeeVoucher> vouchers) => FeeReceipt(
         receiptNo: '12',
@@ -71,12 +81,33 @@ void main() {
     }
   });
 
+  FeeReceipt urduReceipt() => FeeReceipt(
+        receiptNo: '12',
+        date: DateTime(2026, 5, 10),
+        schoolName: 'روضۃ الاطفال',
+        schoolAddress: 'اقراء سکولز فاؤنڈیشن، لاہور',
+        note: 'چیک کے ذریعے',
+        lines: [
+          for (final (i, name) in ['زاہد خان', 'عائشہ خان'].indexed)
+            ReceiptLine(
+              voucher: _voucher(name, i + 1, classLabel: 'کلاس اول - A'),
+              receivedNow: 1500,
+            ),
+        ],
+      );
+
+  test('Urdu text is drawn as pictures and English-only has none', () async {
+    final urdu = String.fromCharCodes(await FeeReceiptPdf().build(urduReceipt()));
+    final english =
+        String.fromCharCodes(await FeeReceiptPdf().build(receipt([_voucher('Ali Raza', 1)])));
+
+    expect(RegExp('/Subtype/Image').allMatches(urdu).length, greaterThan(6));
+    expect(english.contains('/Subtype/Image'), isFalse);
+  });
+
   test('writes a sample file for visual checking when asked', () async {
     final path = Platform.environment['RECEIPT_SAMPLE_PATH'];
     if (path == null) return;
-    File(path).writeAsBytesSync(await FeeReceiptPdf().build(receipt([
-      _voucher('Ali Raza', 1),
-      _voucher('عائشہ خان', 2, paid: 700, misc: 200),
-    ])));
+    File(path).writeAsBytesSync(await FeeReceiptPdf().build(urduReceipt()));
   });
 }

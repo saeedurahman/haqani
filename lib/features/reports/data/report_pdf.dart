@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
 import '../../../core/utils/pdf_school_header.dart';
+import '../../../core/utils/pdf_urdu_text.dart';
 import '../../exams/domain/exam_models.dart';
 import '../domain/report_models.dart';
 import '../domain/report_pdf_service.dart';
@@ -33,6 +34,15 @@ class ReportPdf implements ReportPdfService {
   Future<Uint8List> build(ReportDocument document, SchoolInfo school) async {
     await _loadFonts();
     final logo = await loadPdfLogo(school.logoPath);
+    return PdfUrduText.run((urdu) => _render(urdu, document, school, logo));
+  }
+
+  Future<Uint8List> _render(
+    PdfUrduText urdu,
+    ReportDocument document,
+    SchoolInfo school,
+    pw.ImageProvider? logo,
+  ) {
     final wide = document.tables.any((t) => t.columns.length > 7);
     final doc = pw.Document(
       title: document.title,
@@ -46,7 +56,7 @@ class ReportPdf implements ReportPdfService {
       pw.MultiPage(
         pageFormat: wide ? PdfPageFormat.a4.landscape : PdfPageFormat.a4,
         margin: const pw.EdgeInsets.all(28),
-        header: (_) => _header(document, school, logo),
+        header: (_) => _header(urdu, document, school, logo),
         footer: (context) => pw.Align(
           alignment: pw.Alignment.centerRight,
           child: pw.Text(
@@ -55,8 +65,8 @@ class ReportPdf implements ReportPdfService {
           ),
         ),
         build: (_) => [
-          if (document.stats.isNotEmpty) _stats(document.stats),
-          for (final table in document.tables) ..._table(table),
+          if (document.stats.isNotEmpty) _stats(urdu, document.stats),
+          for (final table in document.tables) ..._table(urdu, table),
         ],
       ),
     );
@@ -64,6 +74,7 @@ class ReportPdf implements ReportPdfService {
   }
 
   pw.Widget _header(
+    PdfUrduText urdu,
     ReportDocument d,
     SchoolInfo school,
     pw.ImageProvider? logo,
@@ -91,7 +102,7 @@ class ReportPdf implements ReportPdfService {
                   pw.Column(
                     crossAxisAlignment: pw.CrossAxisAlignment.start,
                     children: [
-                      pw.Text(
+                      urdu.text(
                         school.name,
                         style: pw.TextStyle(
                           fontSize: 17,
@@ -100,7 +111,7 @@ class ReportPdf implements ReportPdfService {
                         ),
                       ),
                       if (school.address.isNotEmpty || school.phone.isNotEmpty)
-                        pw.Text(
+                        urdu.text(
                           [
                             if (school.address.isNotEmpty) school.address,
                             if (school.phone.isNotEmpty)
@@ -121,7 +132,7 @@ class ReportPdf implements ReportPdfService {
           pw.SizedBox(height: 8),
           pw.Divider(color: _accent, thickness: 1.2, height: 1.2),
           pw.SizedBox(height: 8),
-          pw.Text(
+          urdu.text(
             d.title,
             style: pw.TextStyle(
               fontSize: 15,
@@ -132,7 +143,7 @@ class ReportPdf implements ReportPdfService {
           if (d.subtitle.isNotEmpty)
             pw.Padding(
               padding: const pw.EdgeInsets.only(top: 2),
-              child: pw.Text(
+              child: urdu.text(
                 d.subtitle,
                 style: const pw.TextStyle(fontSize: 10, color: _muted),
               ),
@@ -142,7 +153,7 @@ class ReportPdf implements ReportPdfService {
     );
   }
 
-  pw.Widget _stats(List<ReportStat> stats) {
+  pw.Widget _stats(PdfUrduText urdu, List<ReportStat> stats) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 12),
       child: pw.Wrap(
@@ -162,11 +173,11 @@ class ReportPdf implements ReportPdfService {
               child: pw.Column(
                 crossAxisAlignment: pw.CrossAxisAlignment.start,
                 children: [
-                  pw.Text(
+                  urdu.text(
                     s.label,
                     style: const pw.TextStyle(fontSize: 8, color: _muted),
                   ),
-                  pw.Text(
+                  urdu.text(
                     s.value,
                     style: pw.TextStyle(
                       fontSize: 11,
@@ -182,7 +193,7 @@ class ReportPdf implements ReportPdfService {
     );
   }
 
-  List<pw.Widget> _table(ReportTable t) {
+  List<pw.Widget> _table(PdfUrduText urdu, ReportTable t) {
     pw.Widget cell(
       String text,
       ReportColumn c, {
@@ -191,11 +202,10 @@ class ReportPdf implements ReportPdfService {
     }) {
       return pw.Padding(
         padding: const pw.EdgeInsets.symmetric(horizontal: 5, vertical: 4),
-        child: pw.Text(
+        child: urdu.text(
           text,
-          textAlign: c.type.alignsRight
-              ? pw.TextAlign.right
-              : pw.TextAlign.left,
+          textAlign: c.type.alignsRight ? pw.TextAlign.right : null,
+          fill: true,
           style: pw.TextStyle(
             fontSize: 9,
             fontWeight: header || bold
@@ -215,7 +225,7 @@ class ReportPdf implements ReportPdfService {
       if (t.heading != null)
         pw.Padding(
           padding: const pw.EdgeInsets.only(top: 6, bottom: 6),
-          child: pw.Text(
+          child: urdu.text(
             t.heading!,
             style: pw.TextStyle(
               fontSize: 12,

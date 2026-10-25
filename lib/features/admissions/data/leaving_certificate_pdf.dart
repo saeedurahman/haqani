@@ -6,6 +6,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
 import '../../../core/utils/pdf_school_header.dart';
+import '../../../core/utils/pdf_urdu_text.dart';
 import '../../../core/utils/number_words.dart';
 import '../domain/certificate_pdf_service.dart';
 import '../domain/leaving_certificate.dart';
@@ -20,6 +21,9 @@ class LeavingCertificatePdf implements CertificatePdfService {
   static const _accent = PdfColor.fromInt(0xFF3730A3);
   static const _muted = PdfColor.fromInt(0xFF6B7194);
 
+  /// A4 width less the page margin, the two borders and the inner padding.
+  static const _sentenceWidth = 595.28 - 2 * 28 - 2 * 5 - 2 * 32 - 2 * 3;
+
   Future<void> _loadFonts() async {
     Future<pw.Font> load(String path) async => pw.Font.ttf(await rootBundle.load(path));
     _regular ??= await load('assets/fonts/Inter-400.ttf');
@@ -31,6 +35,10 @@ class LeavingCertificatePdf implements CertificatePdfService {
   Future<Uint8List> build(LeavingCertificate c) async {
     await _loadFonts();
     final logo = await loadPdfLogo(c.logoPath);
+    return PdfUrduText.run((urdu) => _render(urdu, c, logo));
+  }
+
+  Future<Uint8List> _render(PdfUrduText urdu, LeavingCertificate c, pw.ImageProvider? logo) {
     final doc = pw.Document(
       title: 'School Leaving Certificate - ${c.studentName}',
       theme: pw.ThemeData.withFont(
@@ -49,7 +57,7 @@ class LeavingCertificatePdf implements CertificatePdfService {
           child: pw.Container(
             decoration: pw.BoxDecoration(border: pw.Border.all(color: _accent, width: 0.8)),
             padding: const pw.EdgeInsets.symmetric(horizontal: 32, vertical: 28),
-            child: _content(c, logo),
+            child: _content(urdu, c, logo),
           ),
         ),
       ),
@@ -57,12 +65,13 @@ class LeavingCertificatePdf implements CertificatePdfService {
     return doc.save();
   }
 
-  pw.Widget _content(LeavingCertificate c, pw.ImageProvider? logo) {
+  pw.Widget _content(PdfUrduText urdu, LeavingCertificate c, pw.ImageProvider? logo) {
     final relation = c.gender == 'female' ? 'D/O' : 'S/O';
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
         pdfCenteredSchoolHeader(
+          urdu: urdu,
           name: c.schoolName,
           address: c.schoolAddress,
           phone: c.schoolPhone,
@@ -91,26 +100,27 @@ class LeavingCertificatePdf implements CertificatePdfService {
           ),
         ),
         pw.SizedBox(height: 22),
-        pw.Text(
+        urdu.text(
           'This is to certify that ${_value(c.studentName)} $relation ${_value(c.fatherName)} '
           'was a student of this school. The details are given below.',
           style: const pw.TextStyle(fontSize: 12, lineSpacing: 4, color: _ink),
+          maxWidth: _sentenceWidth,
         ),
         pw.SizedBox(height: 16),
-        _row('Admission No', c.admissionNo),
-        _row('Name of student', c.studentName),
-        _row('Father name', c.fatherName),
-        _row('Date of birth (in figures)', _date(c.dob)),
-        _row('Date of birth (in words)', c.dob == null ? '' : NumberWords.dateInWords(c.dob!)),
-        _row('Date of admission', _date(c.admissionDate)),
-        _row('Attended school from', _date(c.attendedFrom)),
-        _row('Attended school to', _date(c.attendedTo)),
-        _row('Class', c.className),
-        _row('Last exam passed', c.exam),
-        _row('Promoted to class', c.promotedClass),
-        _row('All dues cleared', c.duesCleared ? 'Yes' : 'No'),
-        _row('Attendance', c.attendance),
-        _row('Discipline / conduct', c.discipline),
+        _row(urdu, 'Admission No', c.admissionNo),
+        _row(urdu, 'Name of student', c.studentName),
+        _row(urdu, 'Father name', c.fatherName),
+        _row(urdu, 'Date of birth (in figures)', _date(c.dob)),
+        _row(urdu, 'Date of birth (in words)', c.dob == null ? '' : NumberWords.dateInWords(c.dob!)),
+        _row(urdu, 'Date of admission', _date(c.admissionDate)),
+        _row(urdu, 'Attended school from', _date(c.attendedFrom)),
+        _row(urdu, 'Attended school to', _date(c.attendedTo)),
+        _row(urdu, 'Class', c.className),
+        _row(urdu, 'Last exam passed', c.exam),
+        _row(urdu, 'Promoted to class', c.promotedClass),
+        _row(urdu, 'All dues cleared', c.duesCleared ? 'Yes' : 'No'),
+        _row(urdu, 'Attendance', c.attendance),
+        _row(urdu, 'Discipline / conduct', c.discipline),
         pw.Spacer(),
         pw.Row(
           mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
@@ -128,7 +138,7 @@ class LeavingCertificatePdf implements CertificatePdfService {
     );
   }
 
-  pw.Widget _row(String label, String value) {
+  pw.Widget _row(PdfUrduText urdu, String label, String value) {
     return pw.Padding(
       padding: const pw.EdgeInsets.symmetric(vertical: 6),
       child: pw.Row(
@@ -147,8 +157,9 @@ class LeavingCertificatePdf implements CertificatePdfService {
               decoration: const pw.BoxDecoration(
                 border: pw.Border(bottom: pw.BorderSide(color: PdfColors.grey500, width: 0.6)),
               ),
-              child: pw.Text(
+              child: urdu.text(
                 _value(value),
+                fill: true,
                 style: const pw.TextStyle(fontSize: 12.5, color: _ink),
               ),
             ),

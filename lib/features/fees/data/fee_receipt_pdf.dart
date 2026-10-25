@@ -7,6 +7,7 @@ import 'package:pdf/widgets.dart' as pw;
 
 import '../../../core/utils/app_date_utils.dart';
 import '../../../core/utils/pdf_school_header.dart';
+import '../../../core/utils/pdf_urdu_text.dart';
 import '../domain/fee_models.dart';
 import '../domain/receipt_pdf_service.dart';
 
@@ -32,6 +33,10 @@ class FeeReceiptPdf implements ReceiptPdfService {
   Future<Uint8List> build(FeeReceipt receipt) async {
     await _loadFonts();
     final logo = await loadPdfLogo(receipt.logoPath);
+    return PdfUrduText.run((urdu) => _render(urdu, receipt, logo));
+  }
+
+  Future<Uint8List> _render(PdfUrduText urdu, FeeReceipt receipt, pw.ImageProvider? logo) {
     final doc = pw.Document(
       title: 'Fee Receipt ${receipt.receiptNo}',
       theme: pw.ThemeData.withFont(base: _regular!, bold: _bold!, fontFallback: [_urdu!]),
@@ -40,23 +45,24 @@ class FeeReceiptPdf implements ReceiptPdfService {
       pw.MultiPage(
         pageFormat: PdfPageFormat.a5,
         margin: const pw.EdgeInsets.all(24),
-        header: (_) => _header(receipt, logo),
+        header: (_) => _header(urdu, receipt, logo),
         footer: (_) => _footer(),
         build: (_) => [
-          for (final line in receipt.lines) _student(line),
+          for (final line in receipt.lines) _student(urdu, line),
           if (receipt.lines.length > 1) _grandTotal(receipt),
-          if (receipt.note.isNotEmpty) _note(receipt.note),
+          if (receipt.note.isNotEmpty) _note(urdu, receipt.note),
         ],
       ),
     );
     return doc.save();
   }
 
-  pw.Widget _header(FeeReceipt r, pw.ImageProvider? logo) {
+  pw.Widget _header(PdfUrduText urdu, FeeReceipt r, pw.ImageProvider? logo) {
     return pw.Column(
       crossAxisAlignment: pw.CrossAxisAlignment.stretch,
       children: [
         pdfCenteredSchoolHeader(
+          urdu: urdu,
           name: r.schoolName,
           address: r.schoolAddress,
           phone: r.schoolPhone,
@@ -115,7 +121,7 @@ class FeeReceiptPdf implements ReceiptPdfService {
   }
 
   /// A Row, so a student block moves to the next page as one piece.
-  pw.Widget _student(ReceiptLine line) {
+  pw.Widget _student(PdfUrduText urdu, ReceiptLine line) {
     final v = line.voucher;
     final month = DateFormat('MMMM yyyy').format(DateTime.parse('${v.forMonth}-01'));
     return pw.Container(
@@ -133,11 +139,11 @@ class FeeReceiptPdf implements ReceiptPdfService {
             child: pw.Column(
               crossAxisAlignment: pw.CrossAxisAlignment.start,
               children: [
-                _info('Student', v.student.name, bold: true),
-                _info('Registration No',
+                _info(urdu, 'Student', v.student.name, bold: true),
+                _info(urdu, 'Registration No',
                     v.student.registrationNo.isEmpty ? v.student.admissionNo : v.student.registrationNo),
-                _info('Class / Section', v.student.classLabel),
-                _info('Fee for', month),
+                _info(urdu, 'Class / Section', v.student.classLabel),
+                _info(urdu, 'Fee for', month),
               ],
             ),
           ),
@@ -166,10 +172,10 @@ class FeeReceiptPdf implements ReceiptPdfService {
     );
   }
 
-  pw.Widget _note(String note) {
+  pw.Widget _note(PdfUrduText urdu, String note) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(top: 6),
-      child: pw.Text('Note: $note', style: const pw.TextStyle(fontSize: 9.5, color: _ink)),
+      child: urdu.text('Note: $note', style: const pw.TextStyle(fontSize: 9.5, color: _ink)),
     );
   }
 
@@ -187,14 +193,14 @@ class FeeReceiptPdf implements ReceiptPdfService {
     );
   }
 
-  pw.Widget _info(String label, String value, {bool bold = false}) {
+  pw.Widget _info(PdfUrduText urdu, String label, String value, {bool bold = false}) {
     return pw.Padding(
       padding: const pw.EdgeInsets.only(bottom: 4),
       child: pw.Column(
         crossAxisAlignment: pw.CrossAxisAlignment.start,
         children: [
           pw.Text(label, style: const pw.TextStyle(fontSize: 8, color: _muted)),
-          pw.Text(
+          urdu.text(
             value,
             style: pw.TextStyle(
               fontSize: 10.5,
