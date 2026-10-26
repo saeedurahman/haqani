@@ -337,6 +337,11 @@ None.
 3. English names must look as before; check page counts and that nothing is cut off at the edges of tables.
 4. Print a long report (many Urdu names): it should still open in a few seconds. Text in the PDF is now a picture for Urdu parts, so Urdu cannot be selected or searched in the PDF (English can).
 
+### Windows exe name
+1. Build with `flutter build windows`: the output is `build\windowsdunner\Release\IqraRozatulAtfal.exe` (was haqani.exe). Right-click the exe > Properties > Details: name and description read "Iqra Rozatul Atfal".
+2. Open the app: the window title is unchanged and your existing students, fees and backups are all still there (data folder was not changed).
+3. Update any old desktop shortcut or installer that points to haqani.exe.
+
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
 - No login, no security features (client requirement).
