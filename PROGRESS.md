@@ -342,6 +342,14 @@ None.
 2. Open the app: the window title is unchanged and your existing students, fees and backups are all still there (data folder was not changed).
 3. Update any old desktop shortcut or installer that points to haqani.exe.
 
+### App icon
+1. Build: `flutter build windows`, then look at `IqraRozatulAtfal.exe` in Explorer: it shows the school logo (not the Flutter logo). Check in Large icons and Small icons view.
+2. Run the app: the taskbar and the window corner show the logo. Pin it to the taskbar and check again.
+3. If Explorer still shows the old icon, it is the Windows icon cache: copy the exe to another folder or restart Explorer.
+4. The sidebar logo and the Settings logo work as before.
+
+(Source: `assets/icon/app_icon.png`. `flutter_launcher_icons` (dev only, Windows only) made the first `app_icon.ico`; it writes one 256 size only, so the .ico was rebuilt with 16, 24, 32, 48, 64, 128 and 256 from the same PNG. Running `dart run flutter_launcher_icons` again overwrites it with the single size.)
+
 ## Notes / Decisions
 - Database: drift (SQLite), single local file.
 - No login, no security features (client requirement).
